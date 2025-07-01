@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">מרכז הילדים</string>
+
+    <string-array name="user_types">
+        <item>מנהל</item>
+        <item>רכז</item>
+        <item>מדריך</item>
+        <item>הורה</item>
+        <item>ילד</item>
+    </string-array>
+</resources>

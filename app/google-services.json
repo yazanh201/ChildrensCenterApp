@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "971347869207",
+    "project_id": "mahdi2",
+    "storage_bucket": "mahdi2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:971347869207:android:87c26140a2d16e69b6e652",
+        "android_client_info": {
+          "package_name": "com.example.childrenscenterapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChaiGbgA8PM9aDB-oCl9b2kF0v2APe6iY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:971347869207:android:96d755b037618e26b6e652",
+        "android_client_info": {
+          "package_name": "com.example.childrenscenterapp2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChaiGbgA8PM9aDB-oCl9b2kF0v2APe6iY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
