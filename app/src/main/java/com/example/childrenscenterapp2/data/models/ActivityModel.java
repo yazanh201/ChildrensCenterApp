@@ -20,7 +20,7 @@ public class ActivityModel {
     private Timestamp createdAt; // תאריך יצירה
     private boolean isOneTime; // האם חד פעמית
     private boolean approved; // האם מאושרת (פעילות רגילה = true, חד פעמית = false עד אישור)
-    private String guideId; // מזהה המדריך המשויך
+    private String guideName; // מזהה המדריך המשויך
     private String month; // לדוגמה: 07-2025
 
     // קונסטרקטור ריק נדרש על ידי Firebase
@@ -30,7 +30,7 @@ public class ActivityModel {
     public ActivityModel(String id, String name, String description, String domain,
                          int minAge, int maxAge, List<String> days, int maxParticipants,
                          Timestamp createdAt, boolean isOneTime, boolean approved,
-                         String guideId, String month) {
+                         String guideName, String month) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -42,9 +42,10 @@ public class ActivityModel {
         this.createdAt = createdAt;
         this.isOneTime = isOneTime;
         this.approved = approved;
-        this.guideId = guideId;
+        this.guideName = guideName;  // ← שורה זו צריכה להתאים לפרמטר
         this.month = month;
     }
+
 
 
     // קונסטרקטור חלקי – לשימוש ב-SQLite כשאין את כל השדות
@@ -63,7 +64,7 @@ public class ActivityModel {
         this.createdAt = null;
         this.isOneTime = false;
         this.approved = true;
-        this.guideId = null;
+        this.guideName = null;
         this.month = null;
     }
 
@@ -158,12 +159,12 @@ public class ActivityModel {
         this.approved = approved;
     }
 
-    public String getGuideId() {
-        return guideId;
+    public String getGuideName() {
+        return guideName;
     }
 
-    public void setGuideId(String guideId) {
-        this.guideId = guideId;
+    public void setGuideName(String guideId) {
+        this.guideName = guideId;
     }
 
     public String getMonth() {

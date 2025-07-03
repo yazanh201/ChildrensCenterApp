@@ -1,14 +1,16 @@
 package com.example.childrenscenterapp2.ui.login;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.*;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+
 import com.example.childrenscenterapp2.R;
 import com.example.childrenscenterapp2.data.remote.AuthManager;
 import com.example.childrenscenterapp2.ui.admin.AdminFragment;
@@ -54,6 +56,14 @@ public class LoginFragment extends Fragment {
             public void onSuccess(String userType) {
                 Snackbar.make(requireView(), "התחברת בהצלחה כ־" + userType, Snackbar.LENGTH_SHORT).show();
 
+                // ✅ שמירת מצב התחברות
+                SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+                prefs.edit()
+                        .putBoolean("isLoggedIn", true)
+                        .putString("userEmail", email)
+                        .putString("userType", userType)
+                        .apply();
+
                 // טעינת הפרגמנט המתאים לפי סוג המשתמש
                 Fragment destinationFragment = null;
 
@@ -75,8 +85,6 @@ public class LoginFragment extends Fragment {
                         return;
                 }
 
-
-                // טעינת הפרגמנט
                 FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
                 transaction.replace(R.id.fragment_container, destinationFragment);
                 transaction.addToBackStack(null);

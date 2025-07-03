@@ -1,12 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/holo_purple"
-    android:gravity="center">
+    android:background="#F5F5F5">
 
     <TextView
-        android:text="מסך ילד"
+        android:id="@+id/tvChildWelcome"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ברוך הבא ילד!"
         android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/white" />
+        android:textColor="#333333"
+        android:layout_gravity="center" />
 </FrameLayout>
