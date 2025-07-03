@@ -11,6 +11,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <!-- שם הפעילות -->
         <TextView
             android:id="@+id/tvName"
             android:layout_width="match_parent"
@@ -20,47 +21,48 @@
             android:textSize="18sp"
             android:textColor="#222222" />
 
+        <!-- תחום הפעילות -->
         <TextView
             android:id="@+id/tvDomain"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="תחום: מדע"
-            android:textSize="14sp"
-            android:textColor="#555555" />
-
-        <TextView
-            android:id="@+id/tvMonth"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="חודש: 07-2025"
+            android:text="תחום: "
             android:textSize="14sp"
             android:textColor="#555555"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginTop="4dp"
+            android:layout_marginRight="4dp"/>
 
-        <LinearLayout
+        <!-- ימים -->
+        <TextView
+            android:id="@+id/tvDays"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="end">
+            android:text="ימים: "
+            android:textSize="14sp"
+            android:textColor="#555555"
+            android:layout_marginTop="2dp"
+            android:layout_marginRight="4dp"/>
 
-            <Button
-                android:id="@+id/btnEdit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="✏️ ערוך"
-                android:textSize="14sp"
-                android:backgroundTint="#FF9800"
-                android:textColor="#FFFFFF"
-                android:layout_marginEnd="8dp"/>
+        <!-- גיל מתאים -->
+        <TextView
+            android:id="@+id/tvAge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="גיל מתאים: "
+            android:textSize="14sp"
+            android:textColor="#555555"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginRight="4dp"/>
 
-            <Button
-                android:id="@+id/btnDelete"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🗑️ מחק"
-                android:textSize="14sp"
-                android:backgroundTint="#F44336"
-                android:textColor="#FFFFFF"/>
-        </LinearLayout>
+        <!-- כפתור הרשמה -->
+        <Button
+            android:id="@+id/btnRegister"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="הירשם לפעילות"
+            android:layout_gravity="end"
+            android:backgroundTint="@android:color/holo_blue_light"
+            android:textColor="#FFFFFF"/>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

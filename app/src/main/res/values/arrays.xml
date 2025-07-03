@@ -1,0 +1,23 @@
+<resources>
+
+    <!-- תחומים -->
+    <string-array name="activity_domains">
+        <item>כל התחומים</item>
+        <item>מדע</item>
+        <item>חברה</item>
+        <item>יצירה</item>
+    </string-array>
+
+    <!-- ימים בשבוע -->
+    <string-array name="week_days">
+        <item>כל הימים</item>
+        <item>ראשון</item>
+        <item>שני</item>
+        <item>שלישי</item>
+        <item>רביעי</item>
+        <item>חמישי</item>
+        <item>שישי</item>
+        <item>שבת</item>
+    </string-array>
+
+</resources>

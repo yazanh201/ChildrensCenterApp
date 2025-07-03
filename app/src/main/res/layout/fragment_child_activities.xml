@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:gravity="center_vertical">
+
+        <!-- Space למרווח עליון גדול -->
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="100dp" />
+
+        <!-- כותרת תחום -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="בחר תחום פעילות:"
+            android:textSize="14sp"
+            android:textColor="#555555"/>
+
+        <!-- סינון לפי תחום -->
+        <Spinner
+            android:id="@+id/spinnerDomain"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- כותרת יום -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="בחר יום בשבוע:"
+            android:textSize="14sp"
+            android:textColor="#555555"/>
+
+        <!-- סינון לפי יום -->
+        <Spinner
+            android:id="@+id/spinnerDay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- כותרת גיל -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="הזן גיל:"
+            android:textSize="14sp"
+            android:textColor="#555555"/>
+
+        <!-- שדה גיל -->
+        <EditText
+            android:id="@+id/etAge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="גיל הילד"
+            android:inputType="number"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- כפתור חיפוש -->
+        <Button
+            android:id="@+id/btnSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="חפש פעילויות"
+            android:backgroundTint="@android:color/holo_blue_light"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- כותרת רשימת פעילויות -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="פעילויות זמינות:"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="#333333"
+            android:layout_marginBottom="4dp"/>
+
+        <!-- קו הפרדה -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#CCCCCC"
+            android:layout_marginBottom="4dp"/>
+
+        <!-- RecyclerView להצגת הפעילויות -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewActivities"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+</ScrollView>

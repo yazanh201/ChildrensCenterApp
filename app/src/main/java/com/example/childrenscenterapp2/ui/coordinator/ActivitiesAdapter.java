@@ -5,14 +5,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.childrenscenterapp2.R;
 import com.example.childrenscenterapp2.data.models.ActivityModel;
+
 import java.util.List;
 
 /**
- * אדפטר להצגת פעילויות ברשימה
+ * אדפטר להצגת פעילויות ברשימה לרכז בלבד
  */
 public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.ActivityViewHolder> {
 
@@ -35,6 +38,7 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Ac
     public ActivityViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.activity_item, parent, false);
+
         return new ActivityViewHolder(view);
     }
 
