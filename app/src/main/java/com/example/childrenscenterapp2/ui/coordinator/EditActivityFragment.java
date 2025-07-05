@@ -17,6 +17,9 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import com.example.childrenscenterapp2.data.local.ActivityDatabaseHelper;
+import android.util.Log;
+
 
 /**
  * Fragment לעריכת פעילות קיימת
@@ -198,6 +201,31 @@ public class EditActivityFragment extends Fragment {
                 )
                 .addOnSuccessListener(unused -> {
                     Toast.makeText(getContext(), "✔️ פעילות עודכנה בהצלחה", Toast.LENGTH_SHORT).show();
+
+                    // ✅ עדכון גם ב-SQLite
+                    ActivityModel updatedActivity = new ActivityModel(
+                            activityToEdit.getId(),
+                            name,
+                            description,
+                            spinnerDomain.getSelectedItem().toString(),
+                            Integer.parseInt(etMinAge.getText().toString()),
+                            Integer.parseInt(etMaxAge.getText().toString()),
+                            daysList,
+                            Integer.parseInt(etMaxParticipants.getText().toString())
+                    );
+                    updatedActivity.setGuideName(newGuideName);
+                    updatedActivity.setOneTime(switchOneTime.isChecked());
+
+                    ActivityDatabaseHelper localDb = new ActivityDatabaseHelper(requireContext());
+                    boolean success = localDb.updateActivity(updatedActivity);
+
+                    if (success) {
+                        Log.d("SQLiteSync", "✔️ הפעילות עודכנה בהצלחה גם במסד המקומי (SQLite)");
+                    } else {
+                        Log.e("SQLiteSync", "❌ עדכון הפעילות נכשל במסד המקומי (SQLite)");
+                    }
+
+
 
                     // אם המדריך השתנה – נעדכן את המדריך הישן והחדש
                     if (!TextUtils.isEmpty(newGuideName) && !TextUtils.isEmpty(oldGuideName)

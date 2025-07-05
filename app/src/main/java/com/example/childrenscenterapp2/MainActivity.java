@@ -8,6 +8,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.example.childrenscenterapp2.data.sync.ActivitySyncManager;
+import com.example.childrenscenterapp2.data.sync.UserSyncManager;
 import com.example.childrenscenterapp2.ui.admin.AdminFragment;
 import com.example.childrenscenterapp2.ui.coordinator.CoordinatorFragment;
 import com.example.childrenscenterapp2.ui.guide.GuideFragment;
@@ -15,8 +17,10 @@ import com.example.childrenscenterapp2.ui.home.HomeFragment;
 import com.example.childrenscenterapp2.ui.parent.ParentFragment;
 import com.example.childrenscenterapp2.ui.child.ChildFragment;
 
-
 public class MainActivity extends AppCompatActivity {
+
+    private ActivitySyncManager activitySyncManager;
+    private UserSyncManager userSyncManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +30,13 @@ public class MainActivity extends AppCompatActivity {
         // ✅ חיבור toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        // ✅ התחלת סנכרון פעילויות ו־משתמשים מ־Firebase ל־SQLite
+        activitySyncManager = new ActivitySyncManager(this);
+        activitySyncManager.startListening();
+
+        userSyncManager = new UserSyncManager(this);
+        userSyncManager.startListening();
 
         // שליפת מצב התחברות מה־SharedPreferences
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
@@ -45,11 +56,9 @@ public class MainActivity extends AppCompatActivity {
                     case "מדריך":
                         loadFragment(new GuideFragment());
                         break;
-
-                    case "ילד": // ✅ תפקיד חדש
+                    case "ילד":
                         loadFragment(new ChildFragment());
                         break;
-
                     case "הורה":
                         loadFragment(new ParentFragment());
                         break;
@@ -60,6 +69,18 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 loadFragment(new HomeFragment());
             }
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // ✅ הפסקת ההאזנה לשינויים ב-Firebase
+        if (activitySyncManager != null) {
+            activitySyncManager.stopListening();
+        }
+        if (userSyncManager != null) {
+            userSyncManager.stopListening();
         }
     }
 
