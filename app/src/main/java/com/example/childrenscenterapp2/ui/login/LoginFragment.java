@@ -15,7 +15,6 @@ import com.example.childrenscenterapp2.ui.admin.AdminFragment;
 import com.example.childrenscenterapp2.ui.coordinator.CoordinatorFragment;
 import com.example.childrenscenterapp2.ui.guide.GuideFragment;
 import com.example.childrenscenterapp2.ui.parent.ParentFragment;
-import com.example.childrenscenterapp2.ui.child.ChildFragment;
 import com.google.android.material.snackbar.Snackbar;
 
 public class LoginFragment extends Fragment {
@@ -71,13 +70,11 @@ public class LoginFragment extends Fragment {
                     case "הורה":
                         destinationFragment = new ParentFragment();
                         break;
-                    case "ילד":
-                        destinationFragment = new ChildFragment();
-                        break;
                     default:
                         Snackbar.make(requireView(), "שגיאה בזיהוי תפקיד", Snackbar.LENGTH_SHORT).show();
                         return;
                 }
+
 
                 // טעינת הפרגמנט
                 FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();

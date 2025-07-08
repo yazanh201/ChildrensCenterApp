@@ -1,6 +1,8 @@
 <resources>
+    <!-- שם האפליקציה -->
     <string name="app_name">מרכז הילדים</string>
 
+    <!-- סוגי משתמשים -->
     <string-array name="user_types">
         <item>מנהל</item>
         <item>רכז</item>
@@ -8,4 +10,21 @@
         <item>הורה</item>
         <item>ילד</item>
     </string-array>
+
+    <!-- תחומי התמחות של מדריכים -->
+    <string-array name="specializations">
+        <item>חברה</item>
+        <item>מדע</item>
+        <item>יצירה</item>
+    </string-array>
+
+    <!-- טקסטים עבור prompt של Spinners -->
+    <string name="prompt_select_domain">חיפוש לפי תחום</string>
+    <string name="prompt_select_month">חיפוש לפי חודש</string>
+    <string name="prompt_select_guide">חיפוש לפי מדריך</string>
+
+    <!-- ✅ חיפושים חדשים עבור מדריכים -->
+    <string name="search_by_name">חיפוש לפי שם מדריך</string>
+    <string name="search_by_specialization">חיפוש לפי תחום התמחות</string>
+    <string name="search_by_activity">חיפוש לפי פעילות</string>
 </resources>

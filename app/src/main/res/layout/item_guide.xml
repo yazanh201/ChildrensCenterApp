@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    android:elevation="6dp"
+    android:backgroundTint="#FFFFFF"
+    app:cardCornerRadius="16dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:attr/selectableItemBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- שם המדריך -->
+        <TextView
+            android:id="@+id/tvGuideName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="שם המדריך"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#333333" />
+
+        <!-- תחום התמחות -->
+        <TextView
+            android:id="@+id/tvGuideSpecialization"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="תחום התמחות"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginTop="4dp" />
+
+        <!-- תאריך התחלה -->
+        <TextView
+            android:id="@+id/tvGuideStartDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="תאריך התחלה: -"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginTop="4dp" />
+
+        <!-- פעילויות -->
+        <TextView
+            android:id="@+id/tvGuideActivities"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="פעילויות: -"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginTop="4dp" />
+
+        <!-- כפתורים: תאריך התחלה + מחיקה -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp">
+
+            <Button
+                android:id="@+id/btnSetStartDate"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="הוסף תאריך התחלה"
+                android:backgroundTint="#3F51B5"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:layout_marginEnd="8dp" />
+
+            <Button
+                android:id="@+id/btnDeleteGuide"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="מחיקה"
+                android:backgroundTint="@android:color/holo_red_light"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

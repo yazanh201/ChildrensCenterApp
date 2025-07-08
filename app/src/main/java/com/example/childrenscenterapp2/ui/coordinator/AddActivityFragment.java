@@ -16,18 +16,13 @@ import com.example.childrenscenterapp2.data.local.ActivityDatabaseHelper;
 import com.example.childrenscenterapp2.data.models.ActivityModel;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
-/**
- * Fragment להוספת פעילות חדשה על ידי הרכז
- */
 public class AddActivityFragment extends Fragment {
 
     private EditText etName, etDescription, etMinAge, etMaxAge, etDays, etMaxParticipants;
@@ -39,7 +34,10 @@ public class AddActivityFragment extends Fragment {
     private ActivityDatabaseHelper localDb;
 
     private List<String> guideIds = new ArrayList<>();
-    private String selectedGuideId = null;
+    private List<String> guideNames = new ArrayList<>();
+    private Map<String, String> guideNameToIdMap = new HashMap<>(); // ✅ מיפוי שם ל־uid
+    private ArrayAdapter<String> guideAdapter;
+    private String selectedGuideName = null;
 
     @Nullable
     @Override
@@ -59,23 +57,42 @@ public class AddActivityFragment extends Fragment {
         switchOneTime = view.findViewById(R.id.switchOneTime);
         btnSave = view.findViewById(R.id.btnSave);
 
-        // אתחול פיירבייס ודאטהבייס מקומי
         firestore = FirebaseFirestore.getInstance();
         localDb = new ActivityDatabaseHelper(requireContext());
 
-        // הגדרת Spinner של התחומים
+        // Spinner התחומים
         ArrayAdapter<String> domainAdapter = new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_spinner_item,
                 new String[]{"מדע", "חברה", "יצירה"});
         domainAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerDomain.setAdapter(domainAdapter);
 
-        // שינוי תחום => טען מדריכים מתאימים
+        // Spinner מדריכים
+        guideAdapter = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_spinner_item, guideNames);
+        guideAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerGuide.setAdapter(guideAdapter);
+
+        spinnerGuide.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position < guideNames.size()) {
+                    selectedGuideName = guideNames.get(position);
+                } else {
+                    selectedGuideName = null;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                selectedGuideName = null;
+            }
+        });
+
         spinnerDomain.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedDomain = parent.getItemAtPosition(position).toString();
-                loadGuidesByDomain(selectedDomain);
+                loadGuidesFromAllDomains();
             }
 
             @Override
@@ -84,53 +101,39 @@ public class AddActivityFragment extends Fragment {
 
         btnSave.setOnClickListener(v -> saveActivity());
 
-        // טעינה ראשונית של מדריכים (ברירת מחדל – "מדע")
-        loadGuidesByDomain("מדע");
+        loadGuidesFromAllDomains();
 
         return view;
     }
 
-    /**
-     * טעינת מדריכים לפי תחום מה-Firestore
-     */
-    private void loadGuidesByDomain(String domain) {
+    private void loadGuidesFromAllDomains() {
         firestore.collection("users")
-                .whereEqualTo("role", "guide")
-                .whereEqualTo("expertise", domain)
+                .whereEqualTo("type", "מדריך")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     guideIds.clear();
-                    List<String> guideNames = new ArrayList<>();
+                    guideNames.clear();
+                    guideNameToIdMap.clear();
 
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        String id = doc.getId();
+                        String id = doc.getString("uid");
                         String name = doc.getString("name");
-                        guideIds.add(id);
-                        guideNames.add(name);
+                        String specialization = doc.getString("specialization");
+
+                        if (id != null && name != null) {
+                            String displayName = name + " (" + specialization + ")";
+                            guideIds.add(id);
+                            guideNames.add(displayName);
+                            guideNameToIdMap.put(displayName, id); // ✅ מיפוי לשם
+                        }
                     }
 
-                    ArrayAdapter<String> guideAdapter = new ArrayAdapter<>(requireContext(),
-                            android.R.layout.simple_spinner_item, guideNames);
-                    guideAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                    spinnerGuide.setAdapter(guideAdapter);
-
-                    spinnerGuide.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                        @Override
-                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                            selectedGuideId = guideIds.get(position);
-                        }
-
-                        @Override
-                        public void onNothingSelected(AdapterView<?> parent) {}
-                    });
+                    guideAdapter.notifyDataSetChanged();
                 })
                 .addOnFailureListener(e ->
                         Snackbar.make(requireView(), "⚠️ שגיאה בטעינת מדריכים", Snackbar.LENGTH_LONG).show());
     }
 
-    /**
-     * שמירת פעילות ל-Firestore וגם ל-SQLite
-     */
     private void saveActivity() {
         String name = etName.getText().toString().trim();
         String description = etDescription.getText().toString().trim();
@@ -141,7 +144,6 @@ public class AddActivityFragment extends Fragment {
         String domain = spinnerDomain.getSelectedItem().toString();
         boolean isOneTime = switchOneTime.isChecked();
 
-        // רק שם הוא חובה
         if (TextUtils.isEmpty(name)) {
             Snackbar.make(requireView(), "נא להזין שם פעילות", Snackbar.LENGTH_SHORT).show();
             return;
@@ -155,22 +157,12 @@ public class AddActivityFragment extends Fragment {
         Timestamp now = Timestamp.now();
         boolean approved = !isOneTime;
         String month = LocalDate.now().getMonthValue() + "-" + LocalDate.now().getYear();
-        String guideId = selectedGuideId; // יכול להיות null וזה בסדר
+        String guideName = selectedGuideName;
+        String guideUid = guideNameToIdMap.get(guideName); // ✅ מביא את ה־uid
 
         ActivityModel activity = new ActivityModel(
-                id,
-                name,
-                description,
-                domain,
-                minAge,
-                maxAge,
-                days,
-                maxParticipants,
-                now,
-                isOneTime,
-                approved,
-                guideId,
-                month
+                id, name, description, domain, minAge, maxAge, days,
+                maxParticipants, now, isOneTime, approved, guideName, month
         );
 
         firestore.collection("activities")
@@ -178,18 +170,25 @@ public class AddActivityFragment extends Fragment {
                 .set(activity)
                 .addOnSuccessListener(unused -> {
                     localDb.insertActivity(activity);
-                    Log.d("SaveActivity", "🎉 שמירה ל-Firebase ו-SQLite בוצעה בהצלחה");
+                    Log.d("SaveActivity", "\uD83C\uDF89 שמירה ל-Firebase ו-SQLite בוצעה בהצלחה");
                     Snackbar.make(requireView(), "✅ הפעילות נשמרה בהצלחה", Snackbar.LENGTH_LONG).show();
+
+                    // ✅ עדכון המדריך עם מזהה הפעילות
+                    if (guideUid != null) {
+                        firestore.collection("users")
+                                .document(guideUid)
+                                .update("activities", FieldValue.arrayUnion(name))
+
+                                .addOnSuccessListener(unused2 -> Log.d("GuideUpdate", "🎯 פעילות עודכנה אצל המדריך"))
+                                .addOnFailureListener(e -> Log.e("GuideUpdate", "❌ שגיאה בעדכון מדריך", e));
+                    }
+
                     clearFields();
                 })
                 .addOnFailureListener(e ->
                         Snackbar.make(requireView(), "❌ שגיאה: " + e.getMessage(), Snackbar.LENGTH_LONG).show());
     }
 
-
-    /**
-     * ניקוי שדות הטופס לאחר שמירה
-     */
     private void clearFields() {
         etName.setText("");
         etDescription.setText("");

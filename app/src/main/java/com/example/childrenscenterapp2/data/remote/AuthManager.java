@@ -45,22 +45,28 @@ public class AuthManager {
      * - שומר את פרטי המשתמש ב-Firestore
      * - שומר את המשתמש גם ב-SQLite לצורך סנכרון מקומי
      */
-    public void registerUser(String name, String email, String password, String type, Context context, OnAuthCompleteListener listener) {
+    public void registerUser(String name, String email, String password, String type, String specialization, Context context, OnAuthCompleteListener listener) {
         firebaseAuth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
                     String uid = authResult.getUser().getUid();
-                    User user = new User(uid, name, email, type);
+
+                    // יצירת אובייקט משתמש עם/בלי תחום התמחות
+                    User user;
+                    if (type.equals("מדריך")) {
+                        user = new User(uid, name, email, type, specialization); // נניח שיש קונסטרקטור כזה
+                    } else {
+                        user = new User(uid, name, email, type);
+                    }
 
                     // 🔥 שמירה ב-Firestore
                     firestore.collection("users").document(uid)
                             .set(user)
                             .addOnSuccessListener(unused -> {
-                                // ✅ שמירה ב-SQLite
+                                // ✅ שמירה גם ב-SQLite
                                 if (context != null) {
                                     UserDatabaseHelper localDb = new UserDatabaseHelper(context);
-                                    localDb.insertUser(user);
+                                    localDb.insertUser(user); // ודא שפה גם תומך ב-specialization
                                     Log.d("SQLiteInsert", "נשמר ל-SQLite: " + user.name + " | " + user.email + " | " + user.type);
-
                                 }
 
                                 listener.onSuccess();
@@ -75,6 +81,7 @@ public class AuthManager {
                     }
                 });
     }
+
 
     /**
      * מבצע התחברות של משתמש קיים באמצעות אימייל וסיסמה:

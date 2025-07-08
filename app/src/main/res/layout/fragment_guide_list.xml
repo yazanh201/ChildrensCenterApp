@@ -4,22 +4,22 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="#F9F9F9"
-    android:layoutDirection="rtl">
+    android:layoutDirection="rtl"
+    android:background="#F9F9F9">
 
-    <!-- כותרת הרשימה -->
+    <!-- כותרת -->
     <TextView
         android:id="@+id/tvListTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="רשימת הפעילויות"
+        android:text="רשימת מדריכים"
         android:textAlignment="center"
         android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="#333333"
         android:layout_marginBottom="16dp" />
 
-    <!-- שורת סינון מעוצבת -->
+    <!-- שורת סינון -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -30,46 +30,41 @@
         android:padding="8dp"
         android:background="@drawable/filter_bar_background">
 
+        <!-- סינון לפי שם -->
+        <Spinner
+            android:id="@+id/spinnerGuideName"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_margin="4dp"
+            android:spinnerMode="dropdown"
+            android:prompt="@string/search_by_name" />
+
         <!-- סינון לפי תחום -->
         <Spinner
-            android:id="@+id/spinnerDomain"
+            android:id="@+id/spinnerSpecialization"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
             android:layout_margin="4dp"
-            android:background="@drawable/spinner_background"
             android:spinnerMode="dropdown"
-            android:prompt="@string/prompt_select_domain" />
+            android:prompt="@string/search_by_specialization" />
 
-        <!-- סינון לפי חודש -->
+        <!-- סינון לפי פעילות -->
         <Spinner
-            android:id="@+id/spinnerMonth"
+            android:id="@+id/spinnerActivity"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
             android:layout_margin="4dp"
-            android:background="@drawable/spinner_background"
             android:spinnerMode="dropdown"
-            android:prompt="@string/prompt_select_month" />
-
-        <!-- סינון לפי מדריך -->
-        <Spinner
-            android:id="@+id/spinnerGuide"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:layout_margin="4dp"
-            android:background="@drawable/spinner_background"
-            android:spinnerMode="dropdown"
-            android:prompt="@string/prompt_select_guide" />
+            android:prompt="@string/search_by_activity" />
     </LinearLayout>
 
-    <!-- רשימת הפעילויות -->
+    <!-- רשימת המדריכים -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerActivities"
+        android:id="@+id/recyclerViewGuides"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipToPadding="false"
-        android:paddingBottom="12dp" />
+        android:layout_weight="1" />
 </LinearLayout>
