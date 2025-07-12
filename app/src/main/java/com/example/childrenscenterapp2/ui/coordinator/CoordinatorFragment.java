@@ -14,6 +14,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.example.childrenscenterapp2.R;
 import com.example.childrenscenterapp2.ui.coordinator.AddActivityFragment;
 import com.example.childrenscenterapp2.ui.coordinator.CoordinatorActivitiesFragment;
+import com.example.childrenscenterapp2.ui.home.HomeFragment;
 import com.example.childrenscenterapp2.ui.login.LoginFragment;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -90,7 +91,7 @@ public class CoordinatorFragment extends Fragment {
 
             // חזרה לדף הכניסה
             FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
-            transaction.replace(R.id.fragment_container, new LoginFragment());
+            transaction.replace(R.id.fragment_container, new HomeFragment());
             transaction.commit();
 
             return true;

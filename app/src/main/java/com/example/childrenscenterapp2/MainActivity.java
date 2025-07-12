@@ -2,7 +2,6 @@ package com.example.childrenscenterapp2;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -16,44 +15,26 @@ import com.example.childrenscenterapp2.ui.home.HomeFragment;
 import com.example.childrenscenterapp2.ui.parent.ParentFragment;
 import com.example.childrenscenterapp2.ui.child.ChildFragment;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
-
-    private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // 🌟 איפוס אוטומטי – רק לבדיקה!
-        FirebaseAuth.getInstance().signOut();
-        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        prefs.edit().clear().apply();
-
         setContentView(R.layout.activity_main);
 
-        // חיבור toolbar
+        // ✅ חיבור toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // בדיקת התחברות ב-Firebase
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-
-        // בדיקת SharedPreferences
+        // שליפת מצב התחברות מה־SharedPreferences
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         boolean isLoggedIn = prefs.getBoolean("isLoggedIn", false);
         String userType = prefs.getString("userType", "");
 
-        // הדפסות לבדיקה
-        Log.d(TAG, "currentUser: " + currentUser);
-        Log.d(TAG, "isLoggedIn: " + isLoggedIn);
-        Log.d(TAG, "userType: " + userType);
-
+        // טען את הפרגמנט המתאים
         if (savedInstanceState == null) {
-            if (currentUser != null && isLoggedIn) {
-                // המשתמש מחובר גם ב-Firebase וגם בזיכרון
+            if (isLoggedIn) {
                 switch (userType) {
                     case "מנהל":
                         loadFragment(new AdminFragment());
@@ -64,9 +45,11 @@ public class MainActivity extends AppCompatActivity {
                     case "מדריך":
                         loadFragment(new GuideFragment());
                         break;
-                    case "ילד":
+
+                    case "ילד": // ✅ תפקיד חדש
                         loadFragment(new ChildFragment());
                         break;
+
                     case "הורה":
                         loadFragment(new ParentFragment());
                         break;
@@ -75,7 +58,6 @@ public class MainActivity extends AppCompatActivity {
                         break;
                 }
             } else {
-                // המשתמש לא מחובר - טען מסך התחברות
                 loadFragment(new HomeFragment());
             }
         }
@@ -88,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
     public void loadFragment(Fragment fragment) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.fragment_container, fragment);
+        transaction.addToBackStack(null);
         transaction.commit();
     }
 }

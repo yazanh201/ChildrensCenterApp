@@ -6,11 +6,6 @@ import com.example.childrenscenterapp2.data.local.ActivityDatabaseHelper;
 import com.example.childrenscenterapp2.data.models.ActivityModel;
 import com.google.firebase.firestore.*;
 
-import java.util.List;
-
-/**
- * מחלקה שמאזינה לשינויים ב-Firestore ומסנכרנת ל-SQLite
- */
 public class ActivitySyncManager {
     private final FirebaseFirestore firestore;
     private final ActivityDatabaseHelper dbHelper;
@@ -21,9 +16,6 @@ public class ActivitySyncManager {
         dbHelper = new ActivityDatabaseHelper(context);
     }
 
-    /**
-     * מאזין לשינויים בזמן אמת באוסף הפעילויות ומעדכן את SQLite בהתאם
-     */
     public void startListening() {
         registration = firestore.collection("activities")
                 .addSnapshotListener((snapshots, error) -> {
@@ -40,22 +32,24 @@ public class ActivitySyncManager {
 
                         switch (change.getType()) {
                             case ADDED:
+                                dbHelper.insertOrUpdateActivity(activity);
+                                Log.d("ActivitySync", "➕ פעילות חדשה נוספה: " + activity.getId() + " - " + activity.getName());
+                                break;
                             case MODIFIED:
                                 dbHelper.insertOrUpdateActivity(activity);
+                                Log.d("ActivitySync", "✏️ פעילות עודכנה: " + activity.getId() + " - " + activity.getName());
                                 break;
                             case REMOVED:
                                 dbHelper.deleteActivityById(activity.getId());
+                                Log.d("ActivitySync", "🗑️ פעילות נמחקה: " + activity.getId());
                                 break;
                         }
                     }
 
-                    Log.d("ActivitySync", "✅ סנכרון בוצע מ-Firebase ל-SQLite");
+                    Log.d("ActivitySync", "✅ סנכרון פעילויות הושלם");
                 });
     }
 
-    /**
-     * הפסקת ההאזנה
-     */
     public void stopListening() {
         if (registration != null) {
             registration.remove();

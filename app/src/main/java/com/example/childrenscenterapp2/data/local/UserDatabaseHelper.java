@@ -46,4 +46,32 @@ public class UserDatabaseHelper extends SQLiteOpenHelper {
         db.insert(TABLE_USERS, null, values);
         db.close();
     }
+
+
+    /**
+     * מוסיף או מעדכן משתמש לפי uid
+     */
+    public void insertOrUpdateUser(User user) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("uid", user.uid);
+        values.put("name", user.name);
+        values.put("email", user.email);
+        values.put("type", user.type);
+
+        // אם כבר קיים - עדכון, אחרת הוספה
+        db.insertWithOnConflict("users", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        db.close();
+    }
+
+    /**
+     * מוחק משתמש לפי uid
+     */
+    public void deleteUserByUid(String uid) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete("users", "uid=?", new String[]{uid});
+        db.close();
+    }
+
+
 }

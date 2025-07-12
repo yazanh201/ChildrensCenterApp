@@ -136,5 +136,25 @@ public class ActivityDatabaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+    /**
+     * עדכון פעילות קיימת במסד הנתונים לפי מזהה
+     */
+    public boolean updateActivity(ActivityModel activity) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_NAME, activity.getName());
+        values.put(COL_DESCRIPTION, activity.getDescription());
+        values.put(COL_DOMAIN, activity.getDomain());
+        values.put(COL_MIN_AGE, activity.getMinAge());
+        values.put(COL_MAX_AGE, activity.getMaxAge());
+        values.put(COL_DAYS, String.join(",", activity.getDays()));
+        values.put(COL_MAX_PARTICIPANTS, activity.getMaxParticipants());
+
+        int rowsAffected = db.update(TABLE_NAME, values, COL_ID + " = ?", new String[]{activity.getId()});
+        db.close();
+        return rowsAffected > 0; // ✅ מחזיר true אם העדכון הצליח
+    }
+
+
 
 }
