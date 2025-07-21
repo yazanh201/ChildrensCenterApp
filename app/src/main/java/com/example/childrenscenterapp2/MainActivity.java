@@ -8,6 +8,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.example.childrenscenterapp2.data.sync.ActivitySyncManager;
+import com.example.childrenscenterapp2.data.sync.UserSyncManager;
 import com.example.childrenscenterapp2.ui.admin.AdminFragment;
 import com.example.childrenscenterapp2.ui.coordinator.CoordinatorFragment;
 import com.example.childrenscenterapp2.ui.guide.GuideFragment;
@@ -15,8 +17,10 @@ import com.example.childrenscenterapp2.ui.home.HomeFragment;
 import com.example.childrenscenterapp2.ui.parent.ParentFragment;
 import com.example.childrenscenterapp2.ui.child.ChildFragment;
 
-
 public class MainActivity extends AppCompatActivity {
+
+    private ActivitySyncManager activitySyncManager;
+    private UserSyncManager userSyncManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,45 +31,64 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // שליפת מצב התחברות מה־SharedPreferences
+        // ✅ סנכרון Firebase → SQLite
+        activitySyncManager = new ActivitySyncManager(this);
+        activitySyncManager.startListening();
+
+        userSyncManager = new UserSyncManager(this);
+        userSyncManager.startListening();
+
+        // ✅ טעינת התפקיד השמור
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         boolean isLoggedIn = prefs.getBoolean("isLoggedIn", false);
         String userType = prefs.getString("userType", "");
 
-        // טען את הפרגמנט המתאים
         if (savedInstanceState == null) {
             if (isLoggedIn) {
+                Fragment destination = null;
                 switch (userType) {
                     case "מנהל":
-                        loadFragment(new AdminFragment());
+                        destination = new AdminFragment();
                         break;
                     case "רכז":
-                        loadFragment(new CoordinatorFragment());
+                        destination = new CoordinatorFragment();
                         break;
                     case "מדריך":
-                        loadFragment(new GuideFragment());
+                        destination = new GuideFragment();
                         break;
-
-                    case "ילד": // ✅ תפקיד חדש
-                        loadFragment(new ChildFragment());
-                        break;
-
                     case "הורה":
-                        loadFragment(new ParentFragment());
+                        destination = new ParentFragment();
+                        break;
+                    case "ילד":
+                        destination = new ChildFragment();
                         break;
                     default:
-                        loadFragment(new HomeFragment());
+                        destination = new HomeFragment();
                         break;
                 }
+
+                loadFragment(destination);
             } else {
                 loadFragment(new HomeFragment());
             }
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // ✅ הפסקת האזנה ל-Firebase
+        if (activitySyncManager != null) {
+            activitySyncManager.stopListening();
+        }
+        if (userSyncManager != null) {
+            userSyncManager.stopListening();
+        }
+    }
+
     /**
-     * טוען Fragment חדש לתוך container.
-     * @param fragment הפרגמנט שברצונך להציג
+     * טוען Fragment לתוך המסך.
      */
     public void loadFragment(Fragment fragment) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();

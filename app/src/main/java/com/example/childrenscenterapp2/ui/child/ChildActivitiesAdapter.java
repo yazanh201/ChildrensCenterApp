@@ -16,6 +16,7 @@ import com.example.childrenscenterapp2.data.models.ActivityModel;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
@@ -44,74 +45,112 @@ public class ChildActivitiesAdapter extends RecyclerView.Adapter<ChildActivities
 
         holder.tvName.setText(activity.getName());
         holder.tvDomain.setText("תחום: " + activity.getDomain());
-
         String daysString = android.text.TextUtils.join(", ", activity.getDays());
         holder.tvDays.setText("ימים: " + daysString);
-
         holder.tvAge.setText("גיל מתאים: " + activity.getMinAge() + "-" + activity.getMaxAge());
 
         holder.btnRegister.setOnClickListener(v -> {
-            Log.d("ChildAdapter", "Button clicked for: " + activity.getName());
-
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+            if (user == null) {
+                Toast.makeText(holder.itemView.getContext(), "⚠️ לא מחובר למערכת", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             String childId = user.getUid();
+            String activityId = activity.getId();
+            String domain = activity.getDomain();
 
-            // קודם נחפש במסד ה-users
-            db.collection("users").document(childId).get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        final String nameToUse;
+            if (activityId == null || domain == null) {
+                Toast.makeText(holder.itemView.getContext(), "⚠️ שגיאה בפרטי הפעילות", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-                        if (documentSnapshot.exists()) {
-                            String fetchedName = documentSnapshot.getString("name");
-                            if (fetchedName != null && !fetchedName.trim().isEmpty()) {
-                                nameToUse = fetchedName;
-                            } else if (user.getDisplayName() != null && !user.getDisplayName().trim().isEmpty()) {
-                                nameToUse = user.getDisplayName();
-                            } else {
-                                nameToUse = user.getEmail();
+            // נבדוק אם הילד כבר נרשם לפעילות מאותו תחום
+            db.collection("users")
+                    .document(childId)
+                    .collection("registrations")
+                    .get()
+                    .addOnSuccessListener(snapshot -> {
+                        boolean alreadyInDomain = false;
+
+                        for (DocumentSnapshot doc : snapshot.getDocuments()) {
+                            String existingDomain = doc.getString("domain");
+                            if (existingDomain != null && existingDomain.equals(domain)) {
+                                alreadyInDomain = true;
+                                break;
                             }
-                        } else if (user.getDisplayName() != null && !user.getDisplayName().trim().isEmpty()) {
-                            nameToUse = user.getDisplayName();
-                        } else {
-                            nameToUse = user.getEmail();
                         }
 
-                        // בדוק אם כבר רשום
+                        if (alreadyInDomain) {
+                            Toast.makeText(holder.itemView.getContext(),
+                                    "כבר נרשמת לפעילות בתחום הזה: " + domain,
+                                    Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        // נבדוק אם כבר רשום לפעילות הזו עצמה
                         db.collection("activities")
-                                .document(activity.getId())
+                                .document(activityId)
                                 .collection("registrations")
                                 .whereEqualTo("childId", childId)
                                 .get()
                                 .addOnSuccessListener(querySnapshot -> {
                                     if (!querySnapshot.isEmpty()) {
-                                        Toast.makeText(holder.itemView.getContext(), "⚠️ כבר נרשמת לפעילות זו", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(holder.itemView.getContext(),
+                                                "⚠️ כבר נרשמת לפעילות זו",
+                                                Toast.LENGTH_SHORT).show();
                                     } else {
-                                        Map<String, Object> registration = new HashMap<>();
-                                        registration.put("childId", childId);
-                                        registration.put("childName", nameToUse);
-                                        registration.put("registeredAt", Timestamp.now());
+                                        // נרשום את הילד
+                                        Map<String, Object> activityReg = new HashMap<>();
+                                        activityReg.put("childId", childId);
+                                        activityReg.put("childName", user.getEmail());
+                                        activityReg.put("registeredAt", Timestamp.now());
 
                                         db.collection("activities")
-                                                .document(activity.getId())
+                                                .document(activityId)
                                                 .collection("registrations")
-                                                .add(registration)
-                                                .addOnSuccessListener(documentReference -> {
-                                                    Toast.makeText(holder.itemView.getContext(), "✅ נרשמת בהצלחה!", Toast.LENGTH_SHORT).show();
+                                                .add(activityReg)
+                                                .addOnSuccessListener(docRef -> {
+
+                                                    Map<String, Object> userReg = new HashMap<>();
+                                                    userReg.put("activityId", activityId);
+                                                    userReg.put("domain", domain); // נדרש לבדיקה בעתיד
+                                                    userReg.put("timestamp", Timestamp.now());
+
+                                                    db.collection("users")
+                                                            .document(childId)
+                                                            .collection("registrations")
+                                                            .document(activityId)
+                                                            .set(userReg)
+                                                            .addOnSuccessListener(unused -> {
+                                                                Toast.makeText(holder.itemView.getContext(),
+                                                                        "✅ נרשמת בהצלחה!", Toast.LENGTH_SHORT).show();
+                                                            })
+                                                            .addOnFailureListener(e -> {
+                                                                Toast.makeText(holder.itemView.getContext(),
+                                                                        "שגיאה בשמירה אצל המשתמש", Toast.LENGTH_SHORT).show();
+                                                            });
                                                 })
                                                 .addOnFailureListener(e -> {
-                                                    Toast.makeText(holder.itemView.getContext(), "❌ שגיאה בהרשמה: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                    Toast.makeText(holder.itemView.getContext(),
+                                                            "שגיאה בהרשמה לפעילות", Toast.LENGTH_SHORT).show();
                                                 });
                                     }
                                 })
                                 .addOnFailureListener(e -> {
-                                    Toast.makeText(holder.itemView.getContext(), "❌ שגיאה בבדיקת הרשמה: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(holder.itemView.getContext(),
+                                            "שגיאה בבדיקת הרשמה", Toast.LENGTH_SHORT).show();
                                 });
                     })
                     .addOnFailureListener(e -> {
-                        Toast.makeText(holder.itemView.getContext(), "❌ שגיאה בשליפת שם משתמש: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(holder.itemView.getContext(),
+                                "שגיאה בבדיקת תחומים קודמים", Toast.LENGTH_SHORT).show();
                     });
         });
+
+
     }
 
     @Override

@@ -12,6 +12,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.example.childrenscenterapp2.R;
 import com.example.childrenscenterapp2.data.remote.AuthManager;
 import com.example.childrenscenterapp2.ui.admin.AdminFragment;
+import com.example.childrenscenterapp2.ui.child.ChildFragment;
 import com.example.childrenscenterapp2.ui.coordinator.CoordinatorFragment;
 import com.example.childrenscenterapp2.ui.guide.GuideFragment;
 import com.example.childrenscenterapp2.ui.parent.ParentFragment;
@@ -70,10 +71,14 @@ public class LoginFragment extends Fragment {
                     case "הורה":
                         destinationFragment = new ParentFragment();
                         break;
+                    case "ילד": // ✅ זו הייתה חסרה!
+                        destinationFragment = new ChildFragment();
+                        break;
                     default:
                         Snackbar.make(requireView(), "שגיאה בזיהוי תפקיד", Snackbar.LENGTH_SHORT).show();
                         return;
                 }
+
 
 
                 // טעינת הפרגמנט
