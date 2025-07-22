@@ -3,6 +3,7 @@ package com.example.childrenscenterapp2.ui.admin;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -14,24 +15,34 @@ import com.example.childrenscenterapp2.data.models.User;
 import java.util.List;
 
 /**
- * Adapter להצגת משתמשים (name, email, type)
+ * Adapter להצגת משתמשים עם כפתור מחיקה
  */
 public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHolder> {
 
     private final List<User> userList;
+    private final OnUserDeleteListener deleteListener;
 
-    public UsersAdapter(List<User> userList) {
+    // ממשק למחיקת משתמש
+    public interface OnUserDeleteListener {
+        void onDelete(User user);
+    }
+
+    // בנאי עם listener למחיקה
+    public UsersAdapter(List<User> userList, OnUserDeleteListener deleteListener) {
         this.userList = userList;
+        this.deleteListener = deleteListener;
     }
 
     public static class UserViewHolder extends RecyclerView.ViewHolder {
         TextView txtName, txtEmail, txtType;
+        Button btnDelete;
 
         public UserViewHolder(@NonNull View itemView) {
             super(itemView);
             txtName = itemView.findViewById(R.id.txtName);
             txtEmail = itemView.findViewById(R.id.txtEmail);
             txtType = itemView.findViewById(R.id.txtType);
+            btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }
 
@@ -49,6 +60,13 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHold
         holder.txtName.setText(user.name);
         holder.txtEmail.setText(user.email);
         holder.txtType.setText(user.type);
+
+        // לחיצה על מחיקה
+        holder.btnDelete.setOnClickListener(v -> {
+            if (deleteListener != null) {
+                deleteListener.onDelete(user);
+            }
+        });
     }
 
     @Override

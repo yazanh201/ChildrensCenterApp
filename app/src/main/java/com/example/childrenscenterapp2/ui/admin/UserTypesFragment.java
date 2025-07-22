@@ -31,7 +31,8 @@ public class UserTypesFragment extends Fragment {
         Button btnCoordinator = view.findViewById(R.id.btnCoordinator);
         Button btnGuide = view.findViewById(R.id.btnGuide);
         Button btnChild = view.findViewById(R.id.btnChild);
-        Button btnParent = view.findViewById(R.id.btnParent);
+        Button btnParent = view
+                .findViewById(R.id.btnParent);
 
         btnCoordinator.setOnClickListener(v -> openUserListFragment("רכז"));
         btnGuide.setOnClickListener(v -> openUserListFragment("מדריך"));

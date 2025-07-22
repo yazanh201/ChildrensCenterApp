@@ -37,7 +37,7 @@ public class UserListFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.recyclerUsers);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new UsersAdapter(userList);
+        adapter = new UsersAdapter(userList, user -> deleteUser(user));
         recyclerView.setAdapter(adapter);
 
         db = FirebaseFirestore.getInstance();
@@ -68,4 +68,22 @@ public class UserListFragment extends Fragment {
                     // כאן אפשר להוסיף Toast או לוג לשגיאה
                 });
     }
+
+
+    private void deleteUser(User user) {
+        // 1. מחיקה מה-Firestore
+        db.collection("users").document(user.uid)
+                .delete()
+                .addOnSuccessListener(unused -> {
+                    // הסר מהרשימה ועדכן את התצוגה
+                    userList.remove(user);
+                    adapter.notifyDataSetChanged();
+                })
+                .addOnFailureListener(e -> {
+                    // TODO: הצג Toast או לוג על כישלון
+                });
+
+        // 2. מחיקה מה-Authentication דורשת שימוש ב-Cloud Function ⚠️
+    }
+
 }
