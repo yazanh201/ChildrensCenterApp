@@ -19,8 +19,10 @@ public class GuideActivitiesAdapter extends RecyclerView.Adapter<GuideActivities
     private List<ActivityModel> activities;
     private OnParticipantsClickListener listener;
 
+    // ממשק ללחיצות על כפתורים שונים בכרטיס
     public interface OnParticipantsClickListener {
-        void onParticipantsClick(String activityId, String activityName);
+        void onParticipantsClick(String activityId, String activityName); // צפייה במשתתפים
+        void onUploadPhotosClick(String activityId);                      // פתיחת פרגמנט העלאת תמונות
     }
 
     public GuideActivitiesAdapter(List<ActivityModel> activities, OnParticipantsClickListener listener) {
@@ -44,17 +46,18 @@ public class GuideActivitiesAdapter extends RecyclerView.Adapter<GuideActivities
         holder.tvDomain.setText("תחום: " + activity.getDomain());
         holder.tvMonth.setText("חודש: " + activity.getMonth());
 
-        holder.btnParticipantsList.setVisibility(View.VISIBLE);
-        holder.btnPhotos.setVisibility(View.VISIBLE);
-
+        // לחיצה על כפתור צפייה במשתתפים
         holder.btnParticipantsList.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onParticipantsClick(activity.getId(), activity.getName());
             }
         });
 
+        // לחיצה על כפתור העלאת תמונות
         holder.btnPhotos.setOnClickListener(v -> {
-            // תוכל להוסיף כאן פעולה להעלאת תמונות אם תרצה
+            if (listener != null) {
+                listener.onUploadPhotosClick(activity.getId());
+            }
         });
     }
 
@@ -63,6 +66,7 @@ public class GuideActivitiesAdapter extends RecyclerView.Adapter<GuideActivities
         return activities.size();
     }
 
+    // ViewHolder של כרטיס פעילות
     static class ActivityViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvDomain, tvMonth;
         Button btnParticipantsList, btnPhotos;

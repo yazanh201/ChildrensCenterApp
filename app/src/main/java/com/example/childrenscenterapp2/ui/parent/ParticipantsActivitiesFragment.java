@@ -38,7 +38,8 @@ public class ParticipantsActivitiesFragment extends Fragment {
         recyclerView = view.findViewById(R.id.rvActivitiesForChild);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        adapter = new ActivitiesForChildAdapter(activityNames, null);
+        adapter = new ActivitiesForChildAdapter(activityNames, null, getParentFragmentManager());
+        adapter.setUserRole("parent");
         recyclerView.setAdapter(adapter);
 
         if (getArguments() != null) {

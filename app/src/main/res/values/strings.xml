@@ -2,6 +2,13 @@
     <!-- שם האפליקציה -->
     <string name="app_name">מרכז הילדים</string>
 
+    <string-array name="status_options">
+        <item>גרוע</item>
+        <item>בסדר</item>
+        <item>מעולה</item>
+    </string-array>
+
+
     <!-- סוגי משתמשים -->
     <string-array name="user_types">
         <item>מנהל</item>

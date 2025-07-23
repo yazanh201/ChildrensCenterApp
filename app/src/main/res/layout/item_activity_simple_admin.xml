@@ -98,6 +98,28 @@
             android:text="צפייה בביקורות"
             android:focusable="false"
             android:focusableInTouchMode="false"/>
+        <!-- סטטוס פעילות -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="סטטוס פעילות:"
+            android:textSize="16sp"
+            android:textColor="#555555"
+            android:layout_marginTop="12dp" />
+
+        <Spinner
+            android:id="@+id/spinnerStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnSaveStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="שמור סטטוס פעילות"
+            android:layout_marginTop="8dp" />
+
 
 
 

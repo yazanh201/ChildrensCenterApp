@@ -27,12 +27,14 @@ public class ChildActivitiesAdapter extends RecyclerView.Adapter<ChildActivities
     private List<ActivityModel> activities;
     private String overrideChildId = null;
     private String overrideChildName = null;
+    private boolean showRegisterButton = true;
 
-    public ChildActivitiesAdapter(List<ActivityModel> activities) {
+    // ✅ בנאי חדש שמקבל גם האם להציג כפתור
+    public ChildActivitiesAdapter(List<ActivityModel> activities, boolean showRegisterButton) {
         this.activities = activities;
+        this.showRegisterButton = showRegisterButton;
     }
 
-    // אפשרות להזין ידנית את פרטי הילד (למשל כשנבחר ע"י הורה)
     public void setChildOverride(String childId, String childName) {
         this.overrideChildId = childId;
         this.overrideChildName = childName;
@@ -56,126 +58,131 @@ public class ChildActivitiesAdapter extends RecyclerView.Adapter<ChildActivities
         holder.tvDays.setText("ימים: " + daysString);
         holder.tvAge.setText("גיל מתאים: " + activity.getMinAge() + "-" + activity.getMaxAge());
 
-        holder.btnRegister.setOnClickListener(v -> {
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (showRegisterButton) {
+            holder.btnRegister.setVisibility(View.VISIBLE);
+            holder.btnRegister.setOnClickListener(v -> {
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
-            if (currentUser == null) {
-                Toast.makeText(holder.itemView.getContext(), "⚠️ לא מחובר למערכת", Toast.LENGTH_SHORT).show();
-                return;
-            }
+                if (currentUser == null) {
+                    Toast.makeText(holder.itemView.getContext(), "⚠️ לא מחובר למערכת", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-            String childId = (overrideChildId != null) ? overrideChildId : currentUser.getUid();
-            String childName = (overrideChildName != null) ? overrideChildName : currentUser.getEmail();
+                String childId = (overrideChildId != null) ? overrideChildId : currentUser.getUid();
+                String childName = (overrideChildName != null) ? overrideChildName : currentUser.getEmail();
 
-            String activityId = activity.getId();
-            String domain = activity.getDomain();
-            List<String> newDays = activity.getDays();
+                String activityId = activity.getId();
+                String domain = activity.getDomain();
+                List<String> newDays = activity.getDays();
 
-            if (activityId == null || newDays == null) {
-                Toast.makeText(holder.itemView.getContext(), "⚠️ שגיאה בנתוני פעילות", Toast.LENGTH_SHORT).show();
-                return;
-            }
+                if (activityId == null || newDays == null) {
+                    Toast.makeText(holder.itemView.getContext(), "⚠️ שגיאה בנתוני פעילות", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-            db.collection("users")
-                    .document(childId)
-                    .collection("registrations")
-                    .get()
-                    .addOnSuccessListener(regSnapshot -> {
-                        boolean alreadyInDomain = false;
+                db.collection("users")
+                        .document(childId)
+                        .collection("registrations")
+                        .get()
+                        .addOnSuccessListener(regSnapshot -> {
+                            boolean alreadyInDomain = false;
 
-                        for (DocumentSnapshot doc : regSnapshot.getDocuments()) {
-                            String existingDomain = doc.getString("domain");
-                            if (domain.equals(existingDomain)) {
-                                alreadyInDomain = true;
-                                break;
+                            for (DocumentSnapshot doc : regSnapshot.getDocuments()) {
+                                String existingDomain = doc.getString("domain");
+                                if (domain.equals(existingDomain)) {
+                                    alreadyInDomain = true;
+                                    break;
+                                }
                             }
-                        }
 
-                        if (alreadyInDomain) {
-                            Toast.makeText(holder.itemView.getContext(),
-                                    "כבר נרשמת לפעילות בתחום הזה: " + domain,
-                                    Toast.LENGTH_LONG).show();
-                            return;
-                        }
+                            if (alreadyInDomain) {
+                                Toast.makeText(holder.itemView.getContext(),
+                                        "כבר נרשמת לפעילות בתחום הזה: " + domain,
+                                        Toast.LENGTH_LONG).show();
+                                return;
+                            }
 
-                        db.collection("activities")
-                                .document(activityId)
-                                .collection("registrations")
-                                .whereEqualTo("childId", childId)
-                                .get()
-                                .addOnSuccessListener(querySnapshot -> {
-                                    if (!querySnapshot.isEmpty()) {
-                                        Toast.makeText(holder.itemView.getContext(),
-                                                "⚠️ כבר נרשמת לפעילות זו",
-                                                Toast.LENGTH_SHORT).show();
-                                    } else {
-                                        db.collection("users")
-                                                .document(childId)
-                                                .collection("registrations")
-                                                .get()
-                                                .addOnSuccessListener(userRegs -> {
-                                                    final boolean[] hasConflict = {false};
-                                                    final int[] checksDone = {0};
-                                                    int totalChecks = userRegs.size();
+                            db.collection("activities")
+                                    .document(activityId)
+                                    .collection("registrations")
+                                    .whereEqualTo("childId", childId)
+                                    .get()
+                                    .addOnSuccessListener(querySnapshot -> {
+                                        if (!querySnapshot.isEmpty()) {
+                                            Toast.makeText(holder.itemView.getContext(),
+                                                    "⚠️ כבר נרשמת לפעילות זו",
+                                                    Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            db.collection("users")
+                                                    .document(childId)
+                                                    .collection("registrations")
+                                                    .get()
+                                                    .addOnSuccessListener(userRegs -> {
+                                                        final boolean[] hasConflict = {false};
+                                                        final int[] checksDone = {0};
+                                                        int totalChecks = userRegs.size();
 
-                                                    if (totalChecks == 0) {
-                                                        registerActivity(db, holder, currentUser, activity, childId);
-                                                        return;
-                                                    }
-
-                                                    for (DocumentSnapshot doc : userRegs.getDocuments()) {
-                                                        String existingActivityId = doc.getString("activityId");
-
-                                                        if (existingActivityId == null) {
-                                                            checksDone[0]++;
-                                                            if (checksDone[0] == totalChecks && !hasConflict[0]) {
-                                                                registerActivity(db, holder, currentUser, activity, childId);
-                                                            }
-                                                            continue;
+                                                        if (totalChecks == 0) {
+                                                            registerActivity(db, holder, currentUser, activity, childId);
+                                                            return;
                                                         }
 
-                                                        db.collection("activities")
-                                                                .document(existingActivityId)
-                                                                .get()
-                                                                .addOnSuccessListener(activityDoc -> {
-                                                                    List<String> existingDays = (List<String>) activityDoc.get("days");
+                                                        for (DocumentSnapshot doc : userRegs.getDocuments()) {
+                                                            String existingActivityId = doc.getString("activityId");
 
-                                                                    if (existingDays != null) {
-                                                                        for (String day : existingDays) {
-                                                                            if (newDays.contains(day)) {
-                                                                                hasConflict[0] = true;
-                                                                                Toast.makeText(holder.itemView.getContext(),
-                                                                                        "⚠️ יש חפיפה בימים עם פעילות אחרת",
-                                                                                        Toast.LENGTH_SHORT).show();
-                                                                                break;
+                                                            if (existingActivityId == null) {
+                                                                checksDone[0]++;
+                                                                if (checksDone[0] == totalChecks && !hasConflict[0]) {
+                                                                    registerActivity(db, holder, currentUser, activity, childId);
+                                                                }
+                                                                continue;
+                                                            }
+
+                                                            db.collection("activities")
+                                                                    .document(existingActivityId)
+                                                                    .get()
+                                                                    .addOnSuccessListener(activityDoc -> {
+                                                                        List<String> existingDays = (List<String>) activityDoc.get("days");
+
+                                                                        if (existingDays != null) {
+                                                                            for (String day : existingDays) {
+                                                                                if (newDays.contains(day)) {
+                                                                                    hasConflict[0] = true;
+                                                                                    Toast.makeText(holder.itemView.getContext(),
+                                                                                            "⚠️ יש חפיפה בימים עם פעילות אחרת",
+                                                                                            Toast.LENGTH_SHORT).show();
+                                                                                    break;
+                                                                                }
                                                                             }
                                                                         }
-                                                                    }
 
-                                                                    checksDone[0]++;
-                                                                    if (checksDone[0] == totalChecks && !hasConflict[0]) {
-                                                                        registerActivity(db, holder, currentUser, activity, childId);
-                                                                    }
-                                                                })
-                                                                .addOnFailureListener(e -> {
-                                                                    checksDone[0]++;
-                                                                    if (checksDone[0] == totalChecks && !hasConflict[0]) {
-                                                                        registerActivity(db, holder, currentUser, activity, childId);
-                                                                    }
-                                                                });
-                                                    }
-                                                })
-                                                .addOnFailureListener(e -> {
-                                                    Toast.makeText(holder.itemView.getContext(),
-                                                            "שגיאה בבדיקת הרשמות קודמות", Toast.LENGTH_SHORT).show();
-                                                });
-                                    }
-                                })
-                                .addOnFailureListener(e -> showError(holder, "שגיאה בבדיקת הרשמה"));
-                    })
-                    .addOnFailureListener(e -> showError(holder, "שגיאה בבדיקת תחומים קודמים"));
-        });
+                                                                        checksDone[0]++;
+                                                                        if (checksDone[0] == totalChecks && !hasConflict[0]) {
+                                                                            registerActivity(db, holder, currentUser, activity, childId);
+                                                                        }
+                                                                    })
+                                                                    .addOnFailureListener(e -> {
+                                                                        checksDone[0]++;
+                                                                        if (checksDone[0] == totalChecks && !hasConflict[0]) {
+                                                                            registerActivity(db, holder, currentUser, activity, childId);
+                                                                        }
+                                                                    });
+                                                        }
+                                                    })
+                                                    .addOnFailureListener(e -> {
+                                                        Toast.makeText(holder.itemView.getContext(),
+                                                                "שגיאה בבדיקת הרשמות קודמות", Toast.LENGTH_SHORT).show();
+                                                    });
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> showError(holder, "שגיאה בבדיקת הרשמה"));
+                        })
+                        .addOnFailureListener(e -> showError(holder, "שגיאה בבדיקת תחומים קודמים"));
+            });
+        } else {
+            holder.btnRegister.setVisibility(View.GONE);
+        }
     }
 
     private void showError(ActivityViewHolder holder, String message) {

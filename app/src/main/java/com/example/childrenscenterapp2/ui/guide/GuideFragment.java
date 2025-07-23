@@ -31,8 +31,8 @@ public class GuideFragment extends Fragment {
     private GuideActivitiesAdapter adapter;
     private List<ActivityModel> activityList = new ArrayList<>();
 
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private CollectionReference activitiesRef = db.collection("activities");
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final CollectionReference activitiesRef = db.collection("activities");
 
     @Nullable
     @Override
@@ -45,9 +45,18 @@ public class GuideFragment extends Fragment {
         recyclerViewActivities = view.findViewById(R.id.recyclerViewActivities);
         recyclerViewActivities.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        adapter = new GuideActivitiesAdapter(activityList, (activityId, activityName) -> {
-            openParticipantsListFragment(activityId, activityName);
+        adapter = new GuideActivitiesAdapter(activityList, new GuideActivitiesAdapter.OnParticipantsClickListener() {
+            @Override
+            public void onParticipantsClick(String activityId, String activityName) {
+                openParticipantsListFragment(activityId, activityName);
+            }
+
+            @Override
+            public void onUploadPhotosClick(String activityId) {
+                openUploadPhotosFragment(activityId);
+            }
         });
+
         recyclerViewActivities.setAdapter(adapter);
 
         loadActivities();
@@ -64,8 +73,7 @@ public class GuideFragment extends Fragment {
 
         String currentGuideUid = currentUser.getUid();
 
-        // שלב ראשון: שליפת המדריך לפי ה־UID כדי לקבל את רשימת הפעילויות שלו
-        FirebaseFirestore.getInstance().collection("users")  // או "guides" לפי המבנה שלך
+        db.collection("users")
                 .whereEqualTo("uid", currentGuideUid)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
@@ -80,7 +88,6 @@ public class GuideFragment extends Fragment {
                         return;
                     }
 
-                    // שלב שני: שליפת כל הפעילויות במסד ואז סינון לפי רשימת השמות של המדריך
                     activitiesRef.get()
                             .addOnSuccessListener(activitySnapshot -> {
                                 activityList.clear();
@@ -114,7 +121,19 @@ public class GuideFragment extends Fragment {
         fragment.setArguments(args);
 
         FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.fragment_container, fragment); // ודא שיש container כזה ב־Activity הראשית שלך
+        transaction.replace(R.id.fragment_container, fragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
+    private void openUploadPhotosFragment(String activityId) {
+        UploadPhotosFragment fragment = new UploadPhotosFragment();
+        Bundle args = new Bundle();
+        args.putString("activityId", activityId);
+        fragment.setArguments(args);
+
+        FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, fragment);
         transaction.addToBackStack(null);
         transaction.commit();
     }

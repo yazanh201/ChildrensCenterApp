@@ -119,7 +119,10 @@ public class ChildActivitiesFragment extends Fragment {
     }
 
     private void setupAdapter() {
-        adapter = new ChildActivitiesAdapter(new ArrayList<>());
+        // נבדוק אם זה צפייה כהורה או כילד
+        boolean isParentView = getArguments() != null && getArguments().getBoolean("isParentView", false);
+        adapter = new ChildActivitiesAdapter(new ArrayList<ActivityModel>(), !isParentView); // רק אם זה *לא* הורה – הכפתור יוצג
+
 
         // הגנה מפני ערכים חסרים
         if (childUid != null && childName != null) {
