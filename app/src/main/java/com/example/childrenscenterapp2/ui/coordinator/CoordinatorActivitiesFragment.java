@@ -15,9 +15,6 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.*;
 
-/**
- * Fragment שמציג את כל הפעילויות לרכז
- */
 public class CoordinatorActivitiesFragment extends Fragment {
 
     private RecyclerView recyclerView;
@@ -26,6 +23,12 @@ public class CoordinatorActivitiesFragment extends Fragment {
     private FirebaseFirestore firestore;
 
     private Spinner spinnerDomain, spinnerMonth, spinnerGuide;
+
+    private Button btnSortByParticipants, btnTop10Activities;
+    private final Map<String, Integer> participantCountMap = new HashMap<>();
+    private final Map<String, Double> averageScoreMap = new HashMap<>();
+
+
 
     @Nullable
     @Override
@@ -39,6 +42,8 @@ public class CoordinatorActivitiesFragment extends Fragment {
         spinnerDomain = view.findViewById(R.id.spinnerDomain);
         spinnerMonth = view.findViewById(R.id.spinnerMonth);
         spinnerGuide = view.findViewById(R.id.spinnerGuide);
+        btnSortByParticipants = view.findViewById(R.id.btnSortByParticipants);
+        btnTop10Activities = view.findViewById(R.id.btnTop10Activities);
 
         firestore = FirebaseFirestore.getInstance();
 
@@ -67,14 +72,36 @@ public class CoordinatorActivitiesFragment extends Fragment {
 
         recyclerView.setAdapter(adapter);
 
+        // קריאת נתונים מה-DB
         loadActivitiesFromFirestore();
+
+        // כפתור מיון לפי מספר משתתפים
+        btnSortByParticipants.setOnClickListener(v -> {
+            List<ActivityModel> sortedList = new ArrayList<>(activityList);
+            sortedList.sort((a, b) -> {
+                int countA = participantCountMap.getOrDefault(a.getId(), 0);
+                int countB = participantCountMap.getOrDefault(b.getId(), 0);
+                return Integer.compare(countB, countA); // מהגבוה לנמוך
+            });
+            adapter.setData(sortedList);
+        });
+
+        // כפתור Top 10 פעילויות בדירוג
+        btnTop10Activities.setOnClickListener(v -> {
+            List<ActivityModel> sortedList = new ArrayList<>(activityList);
+            sortedList.sort((a, b) -> {
+                double scoreA = averageScoreMap.getOrDefault(a.getId(), 0.0);
+                double scoreB = averageScoreMap.getOrDefault(b.getId(), 0.0);
+                return Double.compare(scoreB, scoreA); // מהגבוה לנמוך
+            });
+            List<ActivityModel> top10 = sortedList.subList(0, Math.min(10, sortedList.size()));
+            adapter.setData(top10);
+        });
 
         return view;
     }
 
-    /**
-     * שליפת כל הפעילויות מה-Firestore
-     */
+
     private void loadActivitiesFromFirestore() {
         firestore.collection("activities")
                 .get()
@@ -82,35 +109,31 @@ public class CoordinatorActivitiesFragment extends Fragment {
                     activityList.clear();
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         ActivityModel activity = doc.toObject(ActivityModel.class);
+                        activity.setId(doc.getId()); // חשוב
                         activityList.add(activity);
                     }
                     adapter.setData(activityList);
-                    setupSpinners(); // אתחול ספינרים אחרי טעינה
+                    setupSpinners();
+                    calculateStatsForActivities(); // מחשב ממוצע ודירוג
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(requireContext(), "שגיאה בטעינת פעילויות", Toast.LENGTH_SHORT).show();
                 });
     }
 
-    /**
-     * מחיקת פעילות
-     */
     private void deleteActivity(ActivityModel activity) {
         firestore.collection("activities")
                 .document(activity.getId())
                 .delete()
                 .addOnSuccessListener(unused -> {
                     Toast.makeText(requireContext(), "🗑️ פעילות נמחקה", Toast.LENGTH_SHORT).show();
-                    loadActivitiesFromFirestore(); // רענון
+                    loadActivitiesFromFirestore();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(requireContext(), "❌ שגיאה במחיקה", Toast.LENGTH_SHORT).show();
                 });
     }
 
-    /**
-     * אתחול הספינרים והאזנה לבחירה
-     */
     private void setupSpinners() {
         List<String> domains = new ArrayList<>();
         List<String> months = new ArrayList<>();
@@ -151,9 +174,6 @@ public class CoordinatorActivitiesFragment extends Fragment {
         spinnerGuide.setOnItemSelectedListener(filterListener);
     }
 
-    /**
-     * סינון הפעילויות לפי הערכים שנבחרו
-     */
     private void filterActivities() {
         String selectedDomain = spinnerDomain.getSelectedItem().toString();
         String selectedMonth = spinnerMonth.getSelectedItem().toString();
@@ -173,12 +193,45 @@ public class CoordinatorActivitiesFragment extends Fragment {
         adapter.setData(filteredList);
     }
 
-    /**
-     * יצירת מתאם פשוט עבור Spinner
-     */
     private ArrayAdapter<String> createAdapter(List<String> items) {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, items);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         return adapter;
     }
+
+    private void calculateStatsForActivities() {
+        for (ActivityModel activity : activityList) {
+            String activityId = activity.getId();
+
+            firestore.collection("activities")
+                    .document(activityId)
+                    .collection("registrations")
+                    .get()
+                    .addOnSuccessListener(snapshot -> {
+                        int count = snapshot.size();
+                        double totalScore = 0.0;
+                        int scoredCount = 0;
+
+                        for (QueryDocumentSnapshot doc : snapshot) {
+                            if (doc.contains("feedbackScore")) {
+                                try {
+                                    double score = doc.getDouble("feedbackScore");
+                                    totalScore += score;
+                                    scoredCount++;
+                                } catch (Exception ignored) {}
+                            }
+                        }
+
+                        double average = scoredCount > 0 ? totalScore / scoredCount : 0.0;
+
+                        // שמירה במפות
+                        participantCountMap.put(activityId, count);
+                        averageScoreMap.put(activityId, average);
+
+                        // הצגה בעזרת מתודה קיימת באדפטר
+                        adapter.updateStatsForActivity(activityId, count, average);
+                    });
+        }
+    }
+
 }

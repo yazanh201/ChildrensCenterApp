@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cardRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="12dp"
     android:elevation="6dp"
     android:radius="16dp"
+    android:clickable="true"
+    android:focusable="true"
     android:backgroundTint="#FFFFFF"
     android:foreground="?attr/selectableItemBackground">
 
@@ -87,6 +90,16 @@
             android:text="חד פעמית: "
             android:textSize="16sp"
             android:textColor="#555555" />
+
+        <Button
+            android:id="@+id/btnViewReviews"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="צפייה בביקורות"
+            android:focusable="false"
+            android:focusableInTouchMode="false"/>
+
+
 
 
     </LinearLayout>

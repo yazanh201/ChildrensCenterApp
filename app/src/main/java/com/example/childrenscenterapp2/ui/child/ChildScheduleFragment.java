@@ -21,18 +21,24 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ChildScheduleFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private ScheduleAdapter adapter;
     private TextView tvScheduleSummary;
+    private TextView tvAverageScore;
 
     private FirebaseFirestore db;
     private String currentChildId;
 
     private static final String TAG = "ChildSchedule";
+
+    private Map<String, Double> activityScores = new HashMap<>();
+    private List<ActivityModel> activityList = new ArrayList<>();
 
     @Nullable
     @Override
@@ -44,12 +50,12 @@ public class ChildScheduleFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.recyclerSchedule);
         tvScheduleSummary = view.findViewById(R.id.tvScheduleSummary);
+        tvAverageScore = view.findViewById(R.id.tvAverageScore);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new ScheduleAdapter(new ArrayList<>(), activity -> {
             deleteRegistrationForActivity(activity);
         });
-
         recyclerView.setAdapter(adapter);
 
         db = FirebaseFirestore.getInstance();
@@ -69,7 +75,6 @@ public class ChildScheduleFragment extends Fragment {
                 .collection("registrations")
                 .get()
                 .addOnSuccessListener(regSnapshot -> {
-                    Log.d(TAG, "Registrations fetched. Count: " + regSnapshot.size());
                     if (regSnapshot.isEmpty()) {
                         Log.d(TAG, "No registrations found for child.");
                         Toast.makeText(getContext(), "לא קיימות פעילויות בלוח הזמנים שלך", Toast.LENGTH_SHORT).show();
@@ -78,6 +83,9 @@ public class ChildScheduleFragment extends Fragment {
 
                     List<ActivityModel> activities = new ArrayList<>();
                     List<String> domains = new ArrayList<>();
+
+                    final int[] loadedCount = {0};
+                    final int totalActivities = regSnapshot.size();
 
                     for (DocumentSnapshot regDoc : regSnapshot.getDocuments()) {
                         String activityId = regDoc.getString("activityId");
@@ -91,14 +99,39 @@ public class ChildScheduleFragment extends Fragment {
                                         ActivityModel activity = activityDoc.toObject(ActivityModel.class);
                                         if (activity != null) {
                                             Log.d(TAG, "Loaded activity: " + activity.getName());
-                                            activities.add(activity);
-                                            domains.add(activity.getDomain());
 
-                                            adapter.updateData(activities);
-                                            updateSummary(activities, domains);
+                                            db.collection("activities")
+                                                    .document(activityId)
+                                                    .collection("registrations")
+                                                    .get()
+                                                    .addOnSuccessListener(scoreSnapshot -> {
+                                                        double total = 0;
+                                                        int count = 0;
+                                                        for (DocumentSnapshot doc : scoreSnapshot.getDocuments()) {
+                                                            Double score = doc.getDouble("feedbackScore");
+                                                            if (score != null) {
+                                                                total += score;
+                                                                count++;
+                                                            }
+                                                        }
+
+                                                        double avg = count > 0 ? total / count : 0.0;
+                                                        activityScores.put(activityId, avg);
+                                                        activities.add(activity);
+                                                        domains.add(activity.getDomain());
+
+                                                        adapter.updateData(activities);
+                                                        adapter.updateScore(activityId, avg);
+                                                        updateSummary(activities, domains);
+
+                                                        loadedCount[0]++;
+                                                        if (loadedCount[0] == totalActivities) {
+                                                            // כל הפעילויות טוענו - חשב ממוצע כללי
+                                                            activityList = activities;
+                                                            calculateOverallAverageScore(activities);
+                                                        }
+                                                    });
                                         }
-                                    } else {
-                                        Log.d(TAG, "Activity not found: " + activityId);
                                     }
                                 })
                                 .addOnFailureListener(e -> {
@@ -111,9 +144,6 @@ public class ChildScheduleFragment extends Fragment {
                     Toast.makeText(getContext(), "שגיאה בטעינת לוח הזמנים", Toast.LENGTH_SHORT).show();
                 });
     }
-
-
-
 
     private void updateSummary(List<ActivityModel> list, List<String> domains) {
         int total = list.size();
@@ -138,13 +168,27 @@ public class ChildScheduleFragment extends Fragment {
                 ", חברה: " + countSocial +
                 ", יצירה: " + countArt;
 
-        Log.d(TAG, "Summary: " + summary);
         tvScheduleSummary.setText(summary);
     }
 
+    private void calculateOverallAverageScore(List<ActivityModel> activities) {
+        double totalScore = 0;
+        int scoredActivities = 0;
+
+        for (ActivityModel activity : activities) {
+            Double score = activityScores.get(activity.getId());
+            if (score != null) {
+                totalScore += score;
+                scoredActivities++;
+            }
+        }
+
+        double average = scoredActivities > 0 ? totalScore / scoredActivities : 0.0;
+        String result = String.format("ציון ממוצע כללי: %.1f", average);
+        tvAverageScore.setText(result);
+    }
 
     private void deleteRegistrationForActivity(ActivityModel activity) {
-        // 1. מחיקת הפעילות אצל הילד
         db.collection("users")
                 .document(currentChildId)
                 .collection("registrations")
@@ -155,7 +199,6 @@ public class ChildScheduleFragment extends Fragment {
                         doc.getReference().delete();
                     }
 
-                    // 2. מחיקת הילד מתוך הפעילות עצמה
                     db.collection("activities")
                             .document(activity.getId())
                             .collection("registrations")
@@ -167,20 +210,17 @@ public class ChildScheduleFragment extends Fragment {
                                 }
 
                                 Toast.makeText(getContext(), "הפעילות נמחקה בהצלחה", Toast.LENGTH_SHORT).show();
-                                loadChildSchedule(); // רענון הרשימה
+                                loadChildSchedule();
 
                             })
                             .addOnFailureListener(e -> {
                                 Log.e(TAG, "שגיאה במחיקת הילד מהפעילות", e);
                                 Toast.makeText(getContext(), "שגיאה במחיקת הילד מהפעילות", Toast.LENGTH_SHORT).show();
                             });
-
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "שגיאה במחיקת הפעילות אצל הילד", e);
                     Toast.makeText(getContext(), "שגיאה במחיקת פעילות", Toast.LENGTH_SHORT).show();
                 });
     }
-
-
 }

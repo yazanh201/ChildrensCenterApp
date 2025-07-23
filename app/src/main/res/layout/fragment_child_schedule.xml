@@ -3,37 +3,61 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="#FAFAFA">
 
+    <!-- כותרת -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="סיכום הפעילויות שלך"
         android:textAlignment="center"
-        android:textColor="#006064"
-        android:textSize="20sp"
+        android:textColor="#00838F"
+        android:textSize="22sp"
         android:textStyle="bold"
-        android:padding="8dp"
-        />
+        android:paddingBottom="12dp"
+        android:fontFamily="sans-serif-medium" />
 
-
-    <TextView
-        android:id="@+id/tvScheduleSummary"
+    <!-- כרטיס סיכום כללי -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:textAlignment="center"
-        android:textColor="#333333"
-        android:textSize="18sp"
-        androidTypeface="sans"
+        android:orientation="vertical"
+        android:background="@drawable/bg_card"
         android:padding="16dp"
-        android:background="@drawable/summary_background"
         android:elevation="4dp"
-        />
+        android:layout_marginBottom="12dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginHorizontal="4dp">
 
+        <TextView
+            android:id="@+id/tvScheduleSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="סיכום..."
+            android:textSize="16sp"
+            android:textColor="#37474F"
+            android:textAlignment="center"
+            android:fontFamily="sans-serif" />
 
+        <TextView
+            android:id="@+id/tvAverageScore"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ציון ממוצע כללי: "
+            android:textSize="16sp"
+            android:textColor="#37474F"
+            android:textAlignment="center"
+            android:layout_marginTop="8dp"
+            android:fontFamily="sans-serif-medium" />
+    </LinearLayout>
+
+    <!-- רשימת פעילויות -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerSchedule"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingTop="4dp"
+        android:scrollbars="vertical" />
 </LinearLayout>

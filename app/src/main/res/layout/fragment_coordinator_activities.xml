@@ -64,6 +64,36 @@
             android:prompt="@string/prompt_select_guide" />
     </LinearLayout>
 
+    <!-- כפתורים חדשים -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="12dp"
+        android:weightSum="2">
+
+        <Button
+            android:id="@+id/btnSortByParticipants"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="מיון לפי משתתפים"
+            android:layout_margin="4dp"
+            android:backgroundTint="#4CAF50"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/btnTop10Activities"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="הצג 10 פופולריים"
+            android:layout_margin="4dp"
+            android:backgroundTint="#2196F3"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
     <!-- רשימת הפעילויות -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerActivities"

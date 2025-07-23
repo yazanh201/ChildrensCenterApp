@@ -1,4 +1,4 @@
-package com.example.childrenscenterapp2;
+package com.example.childrenscenterapp2.ui.admin;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -29,7 +29,7 @@ public class ActivitiesListFragment extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_activities_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_activities_list_admin, container, false);
 
         recyclerView = view.findViewById(R.id.recyclerActivities);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));

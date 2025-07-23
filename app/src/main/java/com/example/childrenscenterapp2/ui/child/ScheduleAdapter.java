@@ -12,12 +12,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.childrenscenterapp2.R;
 import com.example.childrenscenterapp2.data.models.ActivityModel;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.ScheduleViewHolder> {
 
     private List<ActivityModel> scheduleList;
     private OnDeleteClickListener deleteClickListener;
+
+    // טבלת ציונים לפי activityId
+    private Map<String, Double> scores = new HashMap<>();
 
     public interface OnDeleteClickListener {
         void onDeleteClick(ActivityModel activity);
@@ -42,6 +47,14 @@ public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.Schedu
         holder.tvDomain.setText("תחום: " + activity.getDomain());
         holder.tvDays.setText("ימים: " + android.text.TextUtils.join(", ", activity.getDays()));
 
+        // הצגת ציון ממוצע אם קיים
+        Double avgScore = scores.get(activity.getId());
+        if (avgScore != null) {
+            holder.tvAverageScore.setText("ציון ממוצע: " + String.format("%.1f", avgScore));
+        } else {
+            holder.tvAverageScore.setText("ציון ממוצע: לא זמין");
+        }
+
         holder.btnDelete.setOnClickListener(v -> {
             if (deleteClickListener != null) {
                 deleteClickListener.onDeleteClick(activity);
@@ -55,7 +68,7 @@ public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.Schedu
     }
 
     public static class ScheduleViewHolder extends RecyclerView.ViewHolder {
-        TextView tvName, tvDomain, tvDays, tvHour;
+        TextView tvName, tvDomain, tvDays, tvAverageScore;
         ImageButton btnDelete;
 
         public ScheduleViewHolder(@NonNull View itemView) {
@@ -63,12 +76,19 @@ public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.Schedu
             tvName = itemView.findViewById(R.id.tvName);
             tvDomain = itemView.findViewById(R.id.tvDomain);
             tvDays = itemView.findViewById(R.id.tvDays);
-            btnDelete = itemView.findViewById(R.id.btnDelete); // חדש
+            tvAverageScore = itemView.findViewById(R.id.tvAverageScore); // חדש
+            btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }
 
     public void updateData(List<ActivityModel> newSchedule) {
         this.scheduleList = newSchedule;
+        notifyDataSetChanged();
+    }
+
+    // עדכון ציון לפי מזהה פעילות
+    public void updateScore(String activityId, double score) {
+        scores.put(activityId, score);
         notifyDataSetChanged();
     }
 }

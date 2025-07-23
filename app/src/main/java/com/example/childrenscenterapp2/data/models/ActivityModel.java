@@ -3,6 +3,7 @@ package com.example.childrenscenterapp2.data.models;
 import com.google.firebase.Timestamp;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * מודל פעילות במרכז הילדים – כולל תכונות עבור Firestore + SQLite
@@ -22,6 +23,8 @@ public class ActivityModel {
     private boolean approved; // האם מאושרת (פעילות רגילה = true, חד פעמית = false עד אישור)
     private String guideName; // מזהה המדריך המשויך
     private String month; // לדוגמה: 07-2025
+
+    private transient Map<String, Object> metadata;
 
     // קונסטרקטור ריק נדרש על ידי Firebase
     public ActivityModel() {}
@@ -173,5 +176,14 @@ public class ActivityModel {
 
     public void setMonth(String month) {
         this.month = month;
+    }
+
+
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
     }
 }

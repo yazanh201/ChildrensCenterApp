@@ -56,6 +56,15 @@
                 android:text="שעה"
                 android:textColor="#666666"
                 android:layout_marginTop="2dp" />
+
+            <TextView
+                android:id="@+id/tvAverageScore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ציון ממוצע: 0.0"
+                android:textColor="#FF9800"
+                android:layout_marginTop="4dp" />
+
         </LinearLayout>
 
         <!-- כפתור מחיקה -->

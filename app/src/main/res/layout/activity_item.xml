@@ -45,7 +45,27 @@
             android:textSize="14sp"
             android:textColor="#555555"
             android:layout_marginTop="2dp"
-            android:layout_marginBottom="12dp"/>
+            android:layout_marginBottom="8dp"/>
+
+        <!-- 🔹 מספר משתתפים -->
+        <TextView
+            android:id="@+id/tvParticipantsCount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="משתתפים: 0"
+            android:textSize="14sp"
+            android:textColor="#555555"
+            android:layout_marginBottom="2dp" />
+
+        <!-- 🔹 ממוצע דירוגים -->
+        <TextView
+            android:id="@+id/tvFeedbackAvg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="דירוג ממוצע: 0.0"
+            android:textSize="14sp"
+            android:textColor="#555555"
+            android:layout_marginBottom="12dp" />
 
         <!-- כפתורי עריכה ומחיקה -->
         <LinearLayout

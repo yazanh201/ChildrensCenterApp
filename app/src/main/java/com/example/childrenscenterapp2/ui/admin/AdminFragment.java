@@ -10,7 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.example.childrenscenterapp2.ActivitiesListFragment;
 import com.example.childrenscenterapp2.R;
 
 public class AdminFragment extends Fragment {
