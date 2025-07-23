@@ -30,6 +30,7 @@
             android:background="@android:drawable/edit_text"
             android:padding="12dp" />
 
+
         <EditText
             android:id="@+id/etEmail"
             android:layout_width="match_parent"
@@ -63,6 +64,15 @@
             android:layout_marginBottom="16dp"
             android:visibility="gone"
             android:spinnerMode="dropdown" />
+        <EditText
+            android:id="@+id/etIdNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="הזן תעודת זהות של ההורה "
+            android:inputType="number"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp" />
+
 
         <Button
             android:id="@+id/btnRegister"

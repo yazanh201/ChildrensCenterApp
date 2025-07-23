@@ -1,18 +1,17 @@
 package com.example.childrenscenterapp2.data.remote;
 
 import android.content.Context;
+import android.util.Log;
 import androidx.annotation.NonNull;
 import com.example.childrenscenterapp2.data.local.UserDatabaseHelper;
 import com.example.childrenscenterapp2.data.models.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.*;
-import android.util.Log;
 
-/**
- * AuthManager – מחלקה לניהול הרשמה והתחברות של משתמשים מול Firebase
- * כולל שמירה במסד Firebase Firestore ובסיס נתונים לוקאלי (SQLite)
- */
+import java.util.HashMap;
+import java.util.Map;
+
 public class AuthManager {
 
     private final FirebaseAuth firebaseAuth;
@@ -23,50 +22,52 @@ public class AuthManager {
         firestore = FirebaseFirestore.getInstance();
     }
 
-    /**
-     * ממשק קריאה חוזרת – הצלחה/כישלון ברישום משתמש חדש
-     */
     public interface OnAuthCompleteListener {
         void onSuccess();
         void onFailure(@NonNull Exception e);
     }
 
-    /**
-     * ממשק קריאה חוזרת – הצלחה/כישלון בהתחברות משתמש
-     */
     public interface OnLoginCompleteListener {
         void onSuccess(String userType);
         void onFailure(@NonNull Exception e);
     }
 
-    /**
-     * רושם משתמש חדש במערכת:
-     * - מוסיף אותו ל-Firebase Authentication
-     * - שומר את פרטי המשתמש ב-Firestore
-     * - שומר את המשתמש גם ב-SQLite לצורך סנכרון מקומי
-     */
-    public void registerUser(String name, String email, String password, String type, String specialization, Context context, OnAuthCompleteListener listener) {
+    public void registerUser(String name, String email, String password, String type,
+                             String specialization, String idNumber, Context context,
+                             OnAuthCompleteListener listener) {
+
         firebaseAuth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
                     String uid = authResult.getUser().getUid();
 
-                    // יצירת אובייקט משתמש עם/בלי תחום התמחות
+                    // יצירת אובייקט משתמש לפי סוג
                     User user;
                     if (type.equals("מדריך")) {
-                        user = new User(uid, name, email, type, specialization); // נניח שיש קונסטרקטור כזה
+                        user = new User(uid, name, email, type, specialization, "");
+                    } else if (type.equals("הורה") || type.equals("ילד")) {
+                        user = new User(uid, name, email, type, "", idNumber);
                     } else {
                         user = new User(uid, name, email, type);
                     }
 
+                    // יצירת Map לשמירה ב-Firestore
+                    Map<String, Object> userMap = new HashMap<>();
+                    userMap.put("uid", user.getUid());
+                    userMap.put("name", user.getName());
+                    userMap.put("email", user.getEmail());
+                    userMap.put("type", user.getType());
+                    userMap.put("specialization", user.getSpecialization() != null ? user.getSpecialization() : "");
+                    userMap.put("idNumber", user.getIdNumber() != null ? user.getIdNumber() : "");
+
                     // 🔥 שמירה ב-Firestore
                     firestore.collection("users").document(uid)
-                            .set(user)
+                            .set(userMap)
                             .addOnSuccessListener(unused -> {
                                 // ✅ שמירה גם ב-SQLite
                                 if (context != null) {
                                     UserDatabaseHelper localDb = new UserDatabaseHelper(context);
-                                    localDb.insertUser(user); // ודא שפה גם תומך ב-specialization
-                                    Log.d("SQLiteInsert", "נשמר ל-SQLite: " + user.name + " | " + user.email + " | " + user.type);
+                                    localDb.insertUser(user);
+                                    Log.d("SQLiteInsert", "נשמר ל-SQLite: " + user.getName() + " | " + user.getEmail() + " | " + user.getType());
                                 }
 
                                 listener.onSuccess();
@@ -82,12 +83,6 @@ public class AuthManager {
                 });
     }
 
-
-    /**
-     * מבצע התחברות של משתמש קיים באמצעות אימייל וסיסמה:
-     * - בודק את פרטי המשתמש מול Firebase Authentication
-     * - מחזיר את סוג המשתמש (type) מתוך Firestore
-     */
     public void loginUser(String email, String password, OnLoginCompleteListener listener) {
         firebaseAuth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
@@ -113,9 +108,6 @@ public class AuthManager {
                 .addOnFailureListener(listener::onFailure);
     }
 
-    /**
-     * מחזיר את UID של המשתמש הנוכחי המחובר
-     */
     public String getCurrentUserId() {
         FirebaseUser user = firebaseAuth.getCurrentUser();
         return (user != null) ? user.getUid() : null;

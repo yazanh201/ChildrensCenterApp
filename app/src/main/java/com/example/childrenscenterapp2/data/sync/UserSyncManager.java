@@ -31,18 +31,31 @@ public class UserSyncManager {
                         DocumentSnapshot doc = change.getDocument();
                         User user = doc.toObject(User.class);
 
+                        if (user == null || user.getUid() == null) {
+                            Log.w("UserSync", "⚠️ משתמש לא תקין – דילוג");
+                            continue;
+                        }
+
+                        String uid = user.getUid();
+                        String name = user.getName();
+                        String type = user.getType();
+
                         switch (change.getType()) {
                             case ADDED:
                                 dbHelper.insertOrUpdateUser(user);
-                                Log.d("UserSync", "➕ נוסף משתמש: " + user.uid + " - " + user.name);
+                                Log.d("UserSync", "➕ נוסף משתמש: " + name + " (uid: " + uid + ", סוג: " + type + ")");
+                                logExtraFields(user);
                                 break;
+
                             case MODIFIED:
                                 dbHelper.insertOrUpdateUser(user);
-                                Log.d("UserSync", "✏️ עודכן משתמש: " + user.uid + " - " + user.name);
+                                Log.d("UserSync", "✏️ עודכן משתמש: " + name + " (uid: " + uid + ", סוג: " + type + ")");
+                                logExtraFields(user);
                                 break;
+
                             case REMOVED:
-                                dbHelper.deleteUserByUid(user.uid);
-                                Log.d("UserSync", "🗑️ נמחק משתמש: " + user.uid + " - " + user.name);
+                                dbHelper.deleteUserByUid(uid);
+                                Log.d("UserSync", "🗑️ נמחק משתמש: " + name + " (uid: " + uid + ")");
                                 break;
                         }
                     }
@@ -51,10 +64,25 @@ public class UserSyncManager {
                 });
     }
 
+    /**
+     * מדפיס שדות ייחודיים לפי סוג המשתמש
+     */
+    private void logExtraFields(User user) {
+        switch (user.getType()) {
+            case "מדריך":
+                Log.d("UserSync", "📚 תחום התמחות: " + user.getSpecialization());
+                break;
+            case "הורה":
+                Log.d("UserSync", "👨‍👧 תעודת זהות: " + user.getIdNumber());
+                break;
+        }
+    }
+
     public void stopListening() {
         if (registration != null) {
             registration.remove();
             registration = null;
+            Log.d("UserSync", "🛑 הופסקה ההאזנה לעדכוני משתמשים");
         }
     }
 }

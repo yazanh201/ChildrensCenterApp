@@ -14,7 +14,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 public class RegisterFragment extends Fragment {
 
-    private EditText etName, etEmail, etPassword;
+    private EditText etName, etEmail, etPassword, etIdNumber;
     private Spinner spinnerType, spinnerSpecialization;
     private Button btnRegister;
     private AuthManager authManager;
@@ -26,51 +26,52 @@ public class RegisterFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_register, container, false);
 
-        // איתחול רכיבי UI
+        // אתחול רכיבי UI
         etName = view.findViewById(R.id.etName);
         etEmail = view.findViewById(R.id.etEmail);
         etPassword = view.findViewById(R.id.etPassword);
+        etIdNumber = view.findViewById(R.id.etIdNumber);
         spinnerType = view.findViewById(R.id.spinnerType);
-        spinnerSpecialization = view.findViewById(R.id.spinnerSpecialization); // ✅ Spinner של תחום התמחות
+        spinnerSpecialization = view.findViewById(R.id.spinnerSpecialization);
         btnRegister = view.findViewById(R.id.btnRegister);
         authManager = new AuthManager();
 
-        // אתחול Spinner סוגי משתמשים
+        // Spinner סוגי משתמשים
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-                requireContext(),
-                R.array.user_types,
-                android.R.layout.simple_spinner_item);
+                requireContext(), R.array.user_types, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerType.setAdapter(adapter);
 
-        // אתחול Spinner תחומי התמחות
+        // Spinner תחום התמחות
         ArrayAdapter<CharSequence> specializationAdapter = ArrayAdapter.createFromResource(
-                requireContext(),
-                R.array.specializations,
-                android.R.layout.simple_spinner_item);
+                requireContext(), R.array.specializations, android.R.layout.simple_spinner_item);
         specializationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerSpecialization.setAdapter(specializationAdapter);
-        spinnerSpecialization.setVisibility(View.GONE); // מוסתר כברירת מחדל
+        spinnerSpecialization.setVisibility(View.GONE);
+        etIdNumber.setVisibility(View.GONE); // מוסתר כברירת מחדל
 
-        // הצגת spinnerSpecialization רק אם נבחר "מדריך"
+        // שינוי תצוגה לפי סוג משתמש
         spinnerType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selectedType = parent.getItemAtPosition(position).toString();
                 if (selectedType.equals("מדריך")) {
                     spinnerSpecialization.setVisibility(View.VISIBLE);
+                    etIdNumber.setVisibility(View.GONE);
+                } else if (selectedType.equals("הורה") || selectedType.equals("ילד")) {
+                    etIdNumber.setVisibility(View.VISIBLE);
+                    spinnerSpecialization.setVisibility(View.GONE);
                 } else {
                     spinnerSpecialization.setVisibility(View.GONE);
+                    etIdNumber.setVisibility(View.GONE);
                 }
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                spinnerSpecialization.setVisibility(View.GONE);
-            }
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        // האזנה לכפתור הרשמה
+        // האזנה לכפתור
         btnRegister.setOnClickListener(v -> register());
 
         return view;
@@ -82,35 +83,44 @@ public class RegisterFragment extends Fragment {
         String password = etPassword.getText().toString().trim();
         String type = spinnerType.getSelectedItem().toString();
         String specialization = "";
+        String idNumber = etIdNumber.getText().toString().trim();
 
-        // אם מדריך - שלוף גם את התחום
-        if (type.equals("מדריך")) {
-            specialization = spinnerSpecialization.getSelectedItem().toString();
-        }
-
-        // בדיקות תקינות
         if (name.isEmpty() || email.isEmpty() || password.length() < 6) {
             Snackbar.make(requireView(), "יש למלא את כל השדות כראוי", Snackbar.LENGTH_LONG).show();
             return;
         }
 
-        // אם מדריך - בדוק שגם תחום נבחר
-        if (type.equals("מדריך") && specialization.isEmpty()) {
-            Snackbar.make(requireView(), "בחר תחום התמחות", Snackbar.LENGTH_LONG).show();
+        if (type.equals("מדריך")) {
+            specialization = spinnerSpecialization.getSelectedItem().toString();
+            if (specialization.isEmpty()) {
+                Snackbar.make(requireView(), "בחר תחום התמחות", Snackbar.LENGTH_LONG).show();
+                return;
+            }
+        }
+
+        if ((type.equals("הורה") || type.equals("ילד")) && idNumber.isEmpty()) {
+            Snackbar.make(requireView(), "יש להזין תעודת זהות של הורה", Snackbar.LENGTH_LONG).show();
             return;
         }
 
-        // קריאה למחלקת AuthManager לרישום
-        authManager.registerUser(name, email, password, type, specialization, requireContext(), new AuthManager.OnAuthCompleteListener() {
-            @Override
-            public void onSuccess() {
-                Snackbar.make(requireView(), "נרשמת בהצלחה!", Snackbar.LENGTH_LONG).show();
-            }
+        authManager.registerUser(
+                name,
+                email,
+                password,
+                type,
+                specialization,
+                idNumber,
+                requireContext(),
+                new AuthManager.OnAuthCompleteListener() {
+                    @Override
+                    public void onSuccess() {
+                        Snackbar.make(requireView(), "נרשמת בהצלחה!", Snackbar.LENGTH_LONG).show();
+                    }
 
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Snackbar.make(requireView(), "שגיאה: " + e.getMessage(), Snackbar.LENGTH_LONG).show();
-            }
-        });
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Snackbar.make(requireView(), "שגיאה: " + e.getMessage(), Snackbar.LENGTH_LONG).show();
+                    }
+                });
     }
 }

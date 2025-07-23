@@ -1,15 +1,39 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/holo_green_light"
-    android:gravity="center">
+    android:background="#F5F5F5">
 
-    <TextView
-        android:id="@+id/tvParentScreen"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="מסך הורה"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/white" />
-</FrameLayout>
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:id="@+id/tvWelcome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="👋 ברוך הבא, הורה!"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:gravity="center"
+            android:layout_marginBottom="32dp" />
+
+        <Button
+            android:id="@+id/btnShowActivities"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="הצג פעילויות"
+            android:backgroundTint="#3F51B5"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="16dp" />
+        <Button
+            android:id="@+id/btnChildActivities"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="הצג פעילויות של הילד" />
+
+    </LinearLayout>
+</ScrollView>
