@@ -30,5 +30,16 @@
             android:textColor="#FFFFFF"
             android:layout_marginBottom="16dp" />
 
+        <Button
+            android:id="@+id/btnSchedule"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="לוח זמנים אישי"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="#3F51B5"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp" />
+
+
     </LinearLayout>
 </ScrollView>

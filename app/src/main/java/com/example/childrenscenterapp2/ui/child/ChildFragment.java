@@ -23,21 +23,21 @@ public class ChildFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_child, container, false);
 
+        // כפתור להצגת פעילויות
         Button btnShowActivities = view.findViewById(R.id.btnShowActivities);
-        btnShowActivities.setOnClickListener(v -> {
-            FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
-            transaction.replace(R.id.fragment_container, new ChildActivitiesFragment());
-            transaction.addToBackStack(null);
-            transaction.commit();
-        });
+        btnShowActivities.setOnClickListener(v -> openFragment(new ChildActivitiesFragment()));
+
+        // כפתור חדש: לוח זמנים
+        Button btnSchedule = view.findViewById(R.id.btnSchedule);
+        btnSchedule.setOnClickListener(v -> openFragment(new ChildScheduleFragment()));
 
         return view;
     }
 
-
-    private void openActivitiesFragment() {
-        FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.fragment_container, new ChildActivitiesFragment());
+    // פונקציה כללית לפתיחת פרגמנט
+    private void openFragment(Fragment fragment) {
+        FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, fragment);
         transaction.addToBackStack(null);
         transaction.commit();
     }

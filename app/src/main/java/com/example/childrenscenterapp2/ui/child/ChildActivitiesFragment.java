@@ -81,27 +81,36 @@ public class ChildActivitiesFragment extends Fragment {
         // קבלת UID של ילד אם עבר ב־Bundle
         if (getArguments() != null && getArguments().containsKey("childUid")) {
             childUid = getArguments().getString("childUid");
+
             FirebaseFirestore.getInstance().collection("users")
                     .document(childUid)
                     .get()
                     .addOnSuccessListener(snapshot -> {
                         if (snapshot.exists()) {
-                            childName = snapshot.getString("name");
+                            String nameFromDb = snapshot.getString("name");
+                            if (nameFromDb != null && !nameFromDb.isEmpty()) {
+                                childName = nameFromDb;
+                                setupAdapter(); // ערכים מוכנים
+                            } else {
+                                Toast.makeText(getContext(), "שם הילד חסר במסד הנתונים", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(getContext(), "המשתמש לא קיים במסד", Toast.LENGTH_SHORT).show();
                         }
-                        setupAdapter();
                     })
                     .addOnFailureListener(e -> {
                         Toast.makeText(getContext(), "שגיאה בטעינת שם הילד", Toast.LENGTH_SHORT).show();
-                        setupAdapter();
                     });
         } else {
             // אם אין childUid – נניח שזה הילד המחובר
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             if (user != null) {
                 childUid = user.getUid();
-                childName = user.getEmail();
+                childName = user.getEmail(); // או כל שם שיופיע
+                setupAdapter(); // בטוח לקרוא כאן
+            } else {
+                Toast.makeText(getContext(), "⚠️ אין משתמש מחובר", Toast.LENGTH_SHORT).show();
             }
-            setupAdapter();
         }
 
         btnSearch.setOnClickListener(v -> applyFilters());
@@ -111,10 +120,16 @@ public class ChildActivitiesFragment extends Fragment {
 
     private void setupAdapter() {
         adapter = new ChildActivitiesAdapter(new ArrayList<>());
-        adapter.setChildOverride(childUid, childName);
+
+        // הגנה מפני ערכים חסרים
+        if (childUid != null && childName != null) {
+            adapter.setChildOverride(childUid, childName);
+        }
+
         recyclerViewActivities.setAdapter(adapter);
         loadActivities();
     }
+
 
     private void loadActivities() {
         activitiesRef.get().addOnSuccessListener(querySnapshot -> {
@@ -135,7 +150,12 @@ public class ChildActivitiesFragment extends Fragment {
 
         Integer age = null;
         if (!TextUtils.isEmpty(ageText)) {
-            age = Integer.parseInt(ageText);
+            try {
+                age = Integer.parseInt(ageText);
+            } catch (NumberFormatException e) {
+                Toast.makeText(getContext(), "גיל לא תקין", Toast.LENGTH_SHORT).show();
+                return;
+            }
         }
 
         List<ActivityModel> filtered = new ArrayList<>();

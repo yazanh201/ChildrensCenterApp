@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="12dp"
+    android:elevation="6dp"
+    android:radius="16dp"
+    android:backgroundTint="#FFFFFF"
+    android:foreground="?attr/selectableItemBackground">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp">
+
+        <!-- שם הפעילות -->
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="שם הפעילות"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#3F51B5"
+            android:layout_marginBottom="8dp" />
+
+        <!-- תחום -->
+        <TextView
+            android:id="@+id/tvDomain"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="תחום: מדע"
+            android:textSize="16sp"
+            android:textColor="#555555" />
+
+        <!-- מדריך -->
+        <TextView
+            android:id="@+id/tvGuide"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="מדריך: "
+            android:textSize="16sp"
+            android:textColor="#555555" />
+
+        <!-- חודש -->
+        <TextView
+            android:id="@+id/tvMonth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="חודש: "
+            android:textSize="16sp"
+            android:textColor="#555555" />
+
+        <!-- גילאים -->
+        <TextView
+            android:id="@+id/tvAgeRange"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="גילאים: "
+            android:textSize="16sp"
+            android:textColor="#555555" />
+
+        <!-- ימים -->
+        <TextView
+            android:id="@+id/tvDays"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ימים: "
+            android:textSize="16sp"
+            android:textColor="#555555" />
+
+        <!-- משתתפים -->
+        <TextView
+            android:id="@+id/tvMaxParticipants"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="משתתפים מקס': "
+            android:textSize="16sp"
+            android:textColor="#555555" />
+
+        <!-- חד פעמית -->
+        <TextView
+            android:id="@+id/tvOneTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="חד פעמית: "
+            android:textSize="16sp"
+            android:textColor="#555555" />
+
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

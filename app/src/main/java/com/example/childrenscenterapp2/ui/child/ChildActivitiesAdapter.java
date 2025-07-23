@@ -65,26 +65,26 @@ public class ChildActivitiesAdapter extends RecyclerView.Adapter<ChildActivities
                 return;
             }
 
-            // שימוש בילד שנבחר ע"י הורה או בילד המחובר
             String childId = (overrideChildId != null) ? overrideChildId : currentUser.getUid();
             String childName = (overrideChildName != null) ? overrideChildName : currentUser.getEmail();
 
             String activityId = activity.getId();
             String domain = activity.getDomain();
+            List<String> newDays = activity.getDays();
 
-            if (activityId == null || domain == null) {
-                Toast.makeText(holder.itemView.getContext(), "⚠️ שגיאה בפרטי הפעילות", Toast.LENGTH_SHORT).show();
+            if (activityId == null || newDays == null) {
+                Toast.makeText(holder.itemView.getContext(), "⚠️ שגיאה בנתוני פעילות", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // בדיקה אם הילד כבר רשום לפעילות בתחום הזה
             db.collection("users")
                     .document(childId)
                     .collection("registrations")
                     .get()
-                    .addOnSuccessListener(snapshot -> {
+                    .addOnSuccessListener(regSnapshot -> {
                         boolean alreadyInDomain = false;
-                        for (DocumentSnapshot doc : snapshot.getDocuments()) {
+
+                        for (DocumentSnapshot doc : regSnapshot.getDocuments()) {
                             String existingDomain = doc.getString("domain");
                             if (domain.equals(existingDomain)) {
                                 alreadyInDomain = true;
@@ -99,7 +99,6 @@ public class ChildActivitiesAdapter extends RecyclerView.Adapter<ChildActivities
                             return;
                         }
 
-                        // בדיקה אם הילד כבר רשום לפעילות הזו עצמה
                         db.collection("activities")
                                 .document(activityId)
                                 .collection("registrations")
@@ -111,8 +110,66 @@ public class ChildActivitiesAdapter extends RecyclerView.Adapter<ChildActivities
                                                 "⚠️ כבר נרשמת לפעילות זו",
                                                 Toast.LENGTH_SHORT).show();
                                     } else {
-                                        // ביצוע רישום
-                                        registerChildToActivity(db, holder, childId, childName, activityId, domain);
+                                        db.collection("users")
+                                                .document(childId)
+                                                .collection("registrations")
+                                                .get()
+                                                .addOnSuccessListener(userRegs -> {
+                                                    final boolean[] hasConflict = {false};
+                                                    final int[] checksDone = {0};
+                                                    int totalChecks = userRegs.size();
+
+                                                    if (totalChecks == 0) {
+                                                        registerActivity(db, holder, currentUser, activity, childId);
+                                                        return;
+                                                    }
+
+                                                    for (DocumentSnapshot doc : userRegs.getDocuments()) {
+                                                        String existingActivityId = doc.getString("activityId");
+
+                                                        if (existingActivityId == null) {
+                                                            checksDone[0]++;
+                                                            if (checksDone[0] == totalChecks && !hasConflict[0]) {
+                                                                registerActivity(db, holder, currentUser, activity, childId);
+                                                            }
+                                                            continue;
+                                                        }
+
+                                                        db.collection("activities")
+                                                                .document(existingActivityId)
+                                                                .get()
+                                                                .addOnSuccessListener(activityDoc -> {
+                                                                    List<String> existingDays = (List<String>) activityDoc.get("days");
+
+                                                                    if (existingDays != null) {
+                                                                        for (String day : existingDays) {
+                                                                            if (newDays.contains(day)) {
+                                                                                hasConflict[0] = true;
+                                                                                Toast.makeText(holder.itemView.getContext(),
+                                                                                        "⚠️ יש חפיפה בימים עם פעילות אחרת",
+                                                                                        Toast.LENGTH_SHORT).show();
+                                                                                break;
+                                                                            }
+                                                                        }
+                                                                    }
+
+                                                                    checksDone[0]++;
+                                                                    if (checksDone[0] == totalChecks && !hasConflict[0]) {
+                                                                        registerActivity(db, holder, currentUser, activity, childId);
+                                                                    }
+                                                                })
+                                                                .addOnFailureListener(e -> {
+                                                                    checksDone[0]++;
+                                                                    if (checksDone[0] == totalChecks && !hasConflict[0]) {
+                                                                        registerActivity(db, holder, currentUser, activity, childId);
+                                                                    }
+                                                                });
+                                                    }
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    Toast.makeText(holder.itemView.getContext(),
+                                                            "שגיאה בבדיקת הרשמות קודמות", Toast.LENGTH_SHORT).show();
+                                                });
                                     }
                                 })
                                 .addOnFailureListener(e -> showError(holder, "שגיאה בבדיקת הרשמה"));
@@ -121,39 +178,46 @@ public class ChildActivitiesAdapter extends RecyclerView.Adapter<ChildActivities
         });
     }
 
-    private void registerChildToActivity(FirebaseFirestore db, ActivityViewHolder holder,
-                                         String childId, String childName,
-                                         String activityId, String domain) {
+    private void showError(ActivityViewHolder holder, String message) {
+        Toast.makeText(holder.itemView.getContext(), message, Toast.LENGTH_SHORT).show();
+    }
 
-        Map<String, Object> activityReg = new HashMap<>();
-        activityReg.put("childId", childId);
-        activityReg.put("childName", childName);
-        activityReg.put("registeredAt", Timestamp.now());
+    private void registerActivity(FirebaseFirestore db, ActivityViewHolder holder, FirebaseUser user,
+                                  ActivityModel activity, String childId) {
+
+        Map<String, Object> registrationData = new HashMap<>();
+        registrationData.put("childId", childId);
+        registrationData.put("childName", user.getEmail());
+        registrationData.put("registeredAt", Timestamp.now());
 
         db.collection("activities")
-                .document(activityId)
+                .document(activity.getId())
                 .collection("registrations")
-                .add(activityReg)
-                .addOnSuccessListener(docRef -> {
+                .add(registrationData)
+                .addOnSuccessListener(documentReference -> {
+
                     Map<String, Object> userReg = new HashMap<>();
-                    userReg.put("activityId", activityId);
-                    userReg.put("domain", domain);
+                    userReg.put("activityId", activity.getId());
+                    userReg.put("domain", activity.getDomain());
+                    userReg.put("days", activity.getDays());
                     userReg.put("timestamp", Timestamp.now());
 
                     db.collection("users")
                             .document(childId)
                             .collection("registrations")
-                            .document(activityId)
+                            .document(activity.getId())
                             .set(userReg)
-                            .addOnSuccessListener(unused -> Toast.makeText(holder.itemView.getContext(),
-                                    "✅ נרשמת בהצלחה!", Toast.LENGTH_SHORT).show())
-                            .addOnFailureListener(e -> showError(holder, "שגיאה בשמירה אצל המשתמש"));
-                })
-                .addOnFailureListener(e -> showError(holder, "שגיאה בהרשמה לפעילות"));
-    }
+                            .addOnSuccessListener(unused -> {
+                                Toast.makeText(holder.itemView.getContext(), "✅ נרשמת בהצלחה!", Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(holder.itemView.getContext(), "שגיאה בשמירה אצל המשתמש", Toast.LENGTH_SHORT).show();
+                            });
 
-    private void showError(ActivityViewHolder holder, String message) {
-        Toast.makeText(holder.itemView.getContext(), message, Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(holder.itemView.getContext(), "שגיאה בהרשמה", Toast.LENGTH_SHORT).show();
+                });
     }
 
     @Override

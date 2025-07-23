@@ -10,7 +10,7 @@ import com.example.childrenscenterapp2.data.models.User;
 public class UserDatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "users.db";
-    private static final int DATABASE_VERSION = 3; // ⬅️ העלאה מגרסה 2 ל־3
+    private static final int DATABASE_VERSION = 1;
     private static final String TABLE_USERS = "users";
 
     public UserDatabaseHelper(Context context) {
@@ -23,37 +23,44 @@ public class UserDatabaseHelper extends SQLiteOpenHelper {
                 "uid TEXT PRIMARY KEY," +
                 "name TEXT," +
                 "email TEXT," +
-                "type TEXT," +
-                "specialization TEXT," + // ✅ חדש: שדה התמחות (למדריך)
-                "idNumber TEXT" +        // ✅ חדש: שדה ת"ז (להורה)
-                ")";
+                "type TEXT)";
         db.execSQL(createTable);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // מחיקה ובנייה מחדש של הטבלה בעת שינוי מבנה
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
         onCreate(db);
     }
 
     /**
-     * מוסיף משתמש חדש ל־SQLite
+     * מוסיף משתמש ל-SQLite
      */
     public void insertUser(User user) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = createUserContentValues(user);
+        ContentValues values = new ContentValues();
+        values.put("uid", user.getUid());
+        values.put("name", user.getName());
+        values.put("email", user.getEmail());
+        values.put("type", user.getType());
         db.insert(TABLE_USERS, null, values);
         db.close();
     }
+
 
     /**
      * מוסיף או מעדכן משתמש לפי uid
      */
     public void insertOrUpdateUser(User user) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = createUserContentValues(user);
-        db.insertWithOnConflict(TABLE_USERS, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        ContentValues values = new ContentValues();
+        values.put("uid", user.getUid());
+        values.put("name", user.getName());
+        values.put("email", user.getEmail());
+        values.put("type", user.getType());
+
+        // אם כבר קיים - עדכון, אחרת הוספה
+        db.insertWithOnConflict("users", null, values, SQLiteDatabase.CONFLICT_REPLACE);
         db.close();
     }
 
@@ -62,21 +69,15 @@ public class UserDatabaseHelper extends SQLiteOpenHelper {
      */
     public void deleteUserByUid(String uid) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_USERS, "uid=?", new String[]{uid});
+        db.delete("users", "uid=?", new String[]{uid});
         db.close();
     }
-
-    /**
-     * יוצר אובייקט ContentValues מה־User
-     */
-    private ContentValues createUserContentValues(User user) {
-        ContentValues values = new ContentValues();
-        values.put("uid", user.getUid());
-        values.put("name", user.getName());
-        values.put("email", user.getEmail());
-        values.put("type", user.getType());
-        values.put("specialization", user.getSpecialization() != null ? user.getSpecialization() : "");
-        values.put("idNumber", user.getIdNumber() != null ? user.getIdNumber() : "");
-        return values;
+    @Override
+    public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        // ⚠️ אזהרה: זה מוחק את הטבלאות – לא לשים בפרודקשן בלי בדיקה!
+        db.execSQL("DROP TABLE IF EXISTS users"); // או שם הטבלה שלך
+        onCreate(db);
     }
+
+
 }

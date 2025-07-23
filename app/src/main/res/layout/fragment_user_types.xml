@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_user_types"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp"
+    android:orientation="vertical"
+    android:gravity="center">
+
+    <Button
+        android:id="@+id/btnCoordinator"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="רכזים" />
+
+    <Button
+        android:id="@+id/btnGuide"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="מדריכים"
+        android:layout_marginTop="12dp" />
+
+    <Button
+        android:id="@+id/btnChild"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ילדים"
+        android:layout_marginTop="12dp" />
+
+    <Button
+        android:id="@+id/btnParent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="הורים"
+        android:layout_marginTop="12dp" />
+</LinearLayout>
