@@ -35,6 +35,8 @@ public class ChildScheduleFragment extends Fragment {
     private FirebaseFirestore db;
     private String currentChildId;
 
+    private final List<String> requiredDomains = List.of("מדע", "חברה", "יצירה");
+
     private static final String TAG = "ChildSchedule";
 
     private Map<String, Double> activityScores = new HashMap<>();
@@ -126,10 +128,23 @@ public class ChildScheduleFragment extends Fragment {
 
                                                         loadedCount[0]++;
                                                         if (loadedCount[0] == totalActivities) {
-                                                            // כל הפעילויות טוענו - חשב ממוצע כללי
                                                             activityList = activities;
                                                             calculateOverallAverageScore(activities);
+
+                                                            // בדיקה האם חסרים תחומים
+                                                            List<String> missingDomains = new ArrayList<>();
+                                                            for (String required : requiredDomains) {
+                                                                if (!domains.contains(required)) {
+                                                                    missingDomains.add(required);
+                                                                }
+                                                            }
+
+                                                            if (!missingDomains.isEmpty()) {
+                                                                String message = "שים לב: חסרה הרשמה לתחומים: " + String.join(", ", missingDomains);
+                                                                Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+                                                            }
                                                         }
+
                                                     });
                                         }
                                     }

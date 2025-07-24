@@ -140,11 +140,22 @@ public class ChildActivitiesFragment extends Fragment {
             for (QueryDocumentSnapshot doc : querySnapshot) {
                 ActivityModel activity = doc.toObject(ActivityModel.class);
                 activity.setId(doc.getId());
+
+                // ✅ שליפת ערך isRegistrationOpen ישירות מהמסד
+                Boolean isOpen = doc.getBoolean("isRegistrationOpen");
+                if (isOpen != null) {
+                    activity.setIsRegistrationOpen(isOpen);
+                } else {
+                    activity.setIsRegistrationOpen(false); // ברירת מחדל אם לא קיים
+                }
+
                 allActivities.add(activity);
             }
+
             applyFilters();
         });
     }
+
 
     private void applyFilters() {
         String selectedDomain = spinnerDomain.getSelectedItem().toString();

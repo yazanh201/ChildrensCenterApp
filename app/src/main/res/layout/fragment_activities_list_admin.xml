@@ -1,12 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:padding="16dp"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:background="#F5F5F5">
 
+    <!-- כותרת -->
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="📋 רשימת הפעילויות"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="#333333"
+        android:gravity="center"
+        android:paddingBottom="12dp" />
+
+    <!-- כפתור פתיחה/סגירה של ההרשמה -->
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switchRegistration"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ההרשמה סגורה"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#333333"
+        android:thumbTint="@color/purple_500"
+        android:trackTint="@color/purple_200"
+        android:layout_marginBottom="16dp" />
+
+    <!-- רשימת פעילויות -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerActivities"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingTop="4dp"
+        android:background="#FFFFFF"
+        android:clipToPadding="false"
+        android:scrollbars="vertical" />
+
 </LinearLayout>

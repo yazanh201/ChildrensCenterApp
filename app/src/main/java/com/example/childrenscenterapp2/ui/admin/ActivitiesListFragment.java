@@ -7,11 +7,13 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.childrenscenterapp2.R;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -24,6 +26,7 @@ public class ActivitiesListFragment extends Fragment {
     private RecyclerView recyclerView;
     private ActivitiesSimpleAdapter adapter;
     private final List<Map<String, Object>> activityList = new ArrayList<>();
+    private SwitchCompat switchRegistration;
 
     public ActivitiesListFragment() {}
 
@@ -33,12 +36,14 @@ public class ActivitiesListFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.recyclerActivities);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-
-        // יצירת האדפטר עם הנתונים (Map) ומנהל ה־Fragment
         adapter = new ActivitiesSimpleAdapter(activityList, requireActivity().getSupportFragmentManager());
         recyclerView.setAdapter(adapter);
 
-        fetchActivitiesFromFirebase();
+        switchRegistration = view.findViewById(R.id.switchRegistration);
+
+        loadRegistrationStatus();      // ✅ שלב 1: טען מצב הרשמה כולל
+        fetchActivitiesFromFirebase(); // ✅ שלב 2: טען את הפעילויות
+
         return view;
     }
 
@@ -49,12 +54,54 @@ public class ActivitiesListFragment extends Fragment {
                     activityList.clear();
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         Map<String, Object> data = doc.getData();
-                        data.put("id", doc.getId()); // שומרים את מזהה המסמך
+                        data.put("id", doc.getId());
                         activityList.add(data);
                     }
                     adapter.notifyDataSetChanged();
                 })
                 .addOnFailureListener(e ->
-                        Toast.makeText(requireContext(), "שגיאה בטעינה: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                        Toast.makeText(requireContext(), "שגיאה בטעינת פעילויות", Toast.LENGTH_SHORT).show());
+    }
+
+    private void loadRegistrationStatus() {
+        FirebaseFirestore.getInstance().collection("activities")
+                .get()
+                .addOnSuccessListener(query -> {
+                    boolean allOpen = true;
+                    for (DocumentSnapshot doc : query.getDocuments()) {
+                        Boolean open = doc.getBoolean("isRegistrationOpen");
+                        if (open == null || !open) {
+                            allOpen = false;
+                            break;
+                        }
+                    }
+
+                    switchRegistration.setChecked(allOpen);
+                    switchRegistration.setText(allOpen ? "ההרשמה פתוחה" : "ההרשמה סגורה");
+
+                    switchRegistration.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                        updateAllActivitiesRegistration(isChecked);
+                    });
+
+                }).addOnFailureListener(e -> {
+                    Toast.makeText(requireContext(), "שגיאה בבדיקת מצב הרשמה", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void updateAllActivitiesRegistration(boolean open) {
+        FirebaseFirestore.getInstance().collection("activities")
+                .get()
+                .addOnSuccessListener(query -> {
+                    for (DocumentSnapshot doc : query.getDocuments()) {
+                        doc.getReference().update("isRegistrationOpen", open);
+                    }
+                    switchRegistration.setText(open ? "ההרשמה פתוחה" : "ההרשמה סגורה");
+                    Toast.makeText(requireContext(),
+                            open ? "✅ ההרשמה נפתחה לכל הפעילויות" : "❌ ההרשמה נסגרה בכל הפעילויות",
+                            Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(requireContext(), "שגיאה בעדכון הרשמה", Toast.LENGTH_SHORT).show();
+                });
     }
 }

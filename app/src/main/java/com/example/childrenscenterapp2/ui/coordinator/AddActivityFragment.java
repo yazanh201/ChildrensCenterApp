@@ -169,22 +169,27 @@ public class AddActivityFragment extends Fragment {
                 .document(id)
                 .set(activity)
                 .addOnSuccessListener(unused -> {
+                    // 🔽 נוסיף את השדה isRegistrationOpen
+                    firestore.collection("activities")
+                            .document(id)
+                            .update("isRegistrationOpen", false);  // ברירת מחדל: סגור
+
                     localDb.insertActivity(activity);
-                    Log.d("SaveActivity", "\uD83C\uDF89 שמירה ל-Firebase ו-SQLite בוצעה בהצלחה");
+                    Log.d("SaveActivity", "🎉 שמירה ל-Firebase ו-SQLite בוצעה בהצלחה");
                     Snackbar.make(requireView(), "✅ הפעילות נשמרה בהצלחה", Snackbar.LENGTH_LONG).show();
 
-                    // ✅ עדכון המדריך עם מזהה הפעילות
+                    // ⬇️ המשך הקוד שלך
                     if (guideUid != null) {
                         firestore.collection("users")
                                 .document(guideUid)
                                 .update("activities", FieldValue.arrayUnion(name))
-
                                 .addOnSuccessListener(unused2 -> Log.d("GuideUpdate", "🎯 פעילות עודכנה אצל המדריך"))
                                 .addOnFailureListener(e -> Log.e("GuideUpdate", "❌ שגיאה בעדכון מדריך", e));
                     }
 
                     clearFields();
                 })
+
                 .addOnFailureListener(e ->
                         Snackbar.make(requireView(), "❌ שגיאה: " + e.getMessage(), Snackbar.LENGTH_LONG).show());
     }

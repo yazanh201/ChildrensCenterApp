@@ -61,6 +61,15 @@ public class ChildActivitiesAdapter extends RecyclerView.Adapter<ChildActivities
         if (showRegisterButton) {
             holder.btnRegister.setVisibility(View.VISIBLE);
             holder.btnRegister.setOnClickListener(v -> {
+
+                // ✅ בדיקה האם ההרשמה פתוחה
+                if (!activity.isRegistrationOpen()) {
+                    Toast.makeText(holder.itemView.getContext(),
+                            "ההרשמה לפעילות זו עדיין סגורה על ידי המנהל.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // ⬇️ ממשיך לקוד ההרשמה הקיים...
                 FirebaseFirestore db = FirebaseFirestore.getInstance();
                 FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 

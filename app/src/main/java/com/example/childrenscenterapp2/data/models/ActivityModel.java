@@ -24,6 +24,8 @@ public class ActivityModel {
     private String guideName; // מזהה המדריך המשויך
     private String month; // לדוגמה: 07-2025
 
+    private boolean isRegistrationOpen;
+
     private transient Map<String, Object> metadata;
 
     // קונסטרקטור ריק נדרש על ידי Firebase
@@ -185,5 +187,13 @@ public class ActivityModel {
 
     public void setMetadata(Map<String, Object> metadata) {
         this.metadata = metadata;
+    }
+
+    public boolean isRegistrationOpen() {
+        return isRegistrationOpen;
+    }
+
+    public void setIsRegistrationOpen(boolean isRegistrationOpen) {
+        this.isRegistrationOpen = isRegistrationOpen;
     }
 }
