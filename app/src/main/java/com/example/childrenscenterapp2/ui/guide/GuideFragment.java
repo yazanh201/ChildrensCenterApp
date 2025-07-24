@@ -31,11 +31,24 @@ public class GuideFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_guide_home, container, false);
 
-        // כפתור להצגת הפעילויות של המדריך
+        // כפתור 1: הצגת הפעילויות של המדריך (ישן)
         Button btnActivities = view.findViewById(R.id.btnShowActivities);
         btnActivities.setOnClickListener(v -> {
-            FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
+            FragmentTransaction transaction = requireActivity()
+                    .getSupportFragmentManager()
+                    .beginTransaction();
             transaction.replace(R.id.fragment_container, new GuideActivitiesFragment());
+            transaction.addToBackStack(null);
+            transaction.commit();
+        });
+
+        // כפתור 2: הצגת כל הפעילויות – כולל סינון
+        Button btnAllActivities = view.findViewById(R.id.btnAllActivities);
+        btnAllActivities.setOnClickListener(v -> {
+            FragmentTransaction transaction = requireActivity()
+                    .getSupportFragmentManager()
+                    .beginTransaction();
+            transaction.replace(R.id.fragment_container, new AllActivitiesForGuideFragment());
             transaction.addToBackStack(null);
             transaction.commit();
         });
@@ -54,14 +67,11 @@ public class GuideFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.action_logout) {
-            // ניתוק מה־Firebase
             FirebaseAuth.getInstance().signOut();
 
-            // ניקוי SharedPreferences
             SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
             prefs.edit().clear().apply();
 
-            // מעבר ל־HomeFragment
             FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
             transaction.replace(R.id.fragment_container, new HomeFragment());
             transaction.commit();

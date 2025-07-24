@@ -22,13 +22,24 @@
             android:gravity="center"
             android:layout_marginBottom="32dp" />
 
-        <!-- כפתור להצגת פעילויות -->
+        <!-- כפתור להצגת פעילויות אישיות -->
         <Button
             android:id="@+id/btnShowActivities"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:text="הפעילויות שלי"
             android:backgroundTint="#3F51B5"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- 💡 כפתור נוסף לצפייה בכל הפעילויות -->
+        <Button
+            android:id="@+id/btnAllActivities"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="צפייה בכל הפעילויות"
+            android:backgroundTint="#607D8B"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
             android:layout_marginBottom="16dp" />
