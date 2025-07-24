@@ -2,14 +2,17 @@
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_margin="12dp"
     android:elevation="4dp"
-    android:padding="12dp">
+    android:padding="16dp"
+    android:layoutDirection="locale"
+    android:backgroundTint="#FFFFFF">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:layoutDirection="locale">
 
         <!-- שם הפעילות -->
         <TextView
@@ -19,7 +22,8 @@
             android:text="שם הפעילות"
             android:textStyle="bold"
             android:textSize="18sp"
-            android:textColor="#222222" />
+            android:textColor="#222222"
+            android:textAlignment="viewStart" />
 
         <!-- תחום -->
         <TextView
@@ -28,7 +32,9 @@
             android:layout_height="wrap_content"
             android:text="תחום: מדע"
             android:textSize="14sp"
-            android:textColor="#555555" />
+            android:textColor="#555555"
+            android:layout_marginTop="4dp"
+            android:textAlignment="viewStart" />
 
         <!-- חודש -->
         <TextView
@@ -38,35 +44,45 @@
             android:text="חודש: 07-2025"
             android:textSize="14sp"
             android:textColor="#555555"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="12dp"
+            android:textAlignment="viewStart" />
 
         <!-- כפתורים -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="end">
+            android:layoutDirection="locale"
+            android:gravity="start"
+            android:layout_marginTop="4dp">
 
-
-            <Button
-                android:id="@+id/btnParticipentschilds"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="רשימת ילדים משתתפים "
-                android:textSize="14sp"
-                android:backgroundTint="#3F51B5"
-                android:textColor="#FFFFFF"
-                android:layout_marginEnd="8dp"/>
-
+            <!-- כפתור העלאת תמונות -->
             <Button
                 android:id="@+id/btnPhotos"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🖼️העלאת תמונות"
+                android:text="🖼️ העלאת תמונות"
                 android:textSize="14sp"
                 android:backgroundTint="#009688"
-                android:textColor="#FFFFFF"/>
+                android:textColor="#FFFFFF"
+                android:layout_marginEnd="8dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:minHeight="40dp" />
+
+            <!-- כפתור רשימת ילדים -->
+            <Button
+                android:id="@+id/btnParticipentschilds"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="רשימת ילדים משתתפים"
+                android:textSize="14sp"
+                android:backgroundTint="#3F51B5"
+                android:textColor="#FFFFFF"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:minHeight="40dp" />
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>
-
