@@ -1,9 +1,9 @@
 package com.example.childrenscenterapp2.ui.guide;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.Button;
 
 import androidx.annotation.NonNull;
@@ -12,8 +12,16 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.childrenscenterapp2.R;
+import com.example.childrenscenterapp2.ui.home.HomeFragment;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class GuideFragment extends Fragment {
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true); // מאפשר תפריט ⋮
+    }
 
     @Nullable
     @Override
@@ -21,13 +29,11 @@ public class GuideFragment extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        // טוען את העיצוב החדש של המסך הראשי של המדריך (רק כפתור)
         View view = inflater.inflate(R.layout.fragment_guide_home, container, false);
 
-        // מוצא את הכפתור ומגדיר לו האזנה ללחיצה
+        // כפתור להצגת הפעילויות של המדריך
         Button btnActivities = view.findViewById(R.id.btnShowActivities);
         btnActivities.setOnClickListener(v -> {
-            // מעביר ל־GuideActivitiesFragment שמציג את רשימת הפעילויות
             FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
             transaction.replace(R.id.fragment_container, new GuideActivitiesFragment());
             transaction.addToBackStack(null);
@@ -35,5 +41,33 @@ public class GuideFragment extends Fragment {
         });
 
         return view;
+    }
+
+    // תפריט ⋮ להתנתקות
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_logout, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    // טיפול בלחיצה על "התנתק"
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.action_logout) {
+            // ניתוק מה־Firebase
+            FirebaseAuth.getInstance().signOut();
+
+            // ניקוי SharedPreferences
+            SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+            prefs.edit().clear().apply();
+
+            // מעבר ל־HomeFragment
+            FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.fragment_container, new HomeFragment());
+            transaction.commit();
+
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

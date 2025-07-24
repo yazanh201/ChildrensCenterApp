@@ -1,26 +1,34 @@
 package com.example.childrenscenterapp2.ui.parent;
 
-import android.app.AlertDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.example.childrenscenterapp2.R;
+import com.example.childrenscenterapp2.ui.home.HomeFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.*;
 
 import java.util.List;
+import androidx.appcompat.app.AlertDialog;
 
 public class ParentFragment extends Fragment {
 
     private FirebaseFirestore firestore;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true); // מאפשר תפריט ⋮
+    }
 
     @Nullable
     @Override
@@ -42,11 +50,10 @@ public class ParentFragment extends Fragment {
         return view;
     }
 
-    // פתיחת ChildActivitiesFragment עבור חיפוש פעילויות עם סינון
     private void openChildActivitiesSearch() {
         Fragment fragment = new com.example.childrenscenterapp2.ui.child.ChildActivitiesFragment();
         Bundle bundle = new Bundle();
-        bundle.putBoolean("isParentView", true); // אופציונלי, אם רוצים לשנות טקסטים בהתאם
+        bundle.putBoolean("isParentView", true);
         fragment.setArguments(bundle);
 
         getParentFragmentManager().beginTransaction()
@@ -54,8 +61,6 @@ public class ParentFragment extends Fragment {
                 .addToBackStack(null)
                 .commit();
     }
-
-    // === המשך פונקציונליות עבור כפתור שני (לא נוגע בזה) ===
 
     private void fetchParentIdAndChildren() {
         String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -118,5 +123,30 @@ public class ParentFragment extends Fragment {
                 .replace(R.id.fragment_container, fragment)
                 .addToBackStack(null)
                 .commit();
+    }
+
+    // === פונקציונליות התנתקות ===
+
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_logout, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.action_logout) {
+            FirebaseAuth.getInstance().signOut();
+
+            SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+            prefs.edit().clear().apply();
+
+            FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.fragment_container, new HomeFragment());
+            transaction.commit();
+
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

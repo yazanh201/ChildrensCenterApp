@@ -83,7 +83,7 @@ public class AuthManager {
                 });
     }
 
-    public void loginUser(String email, String password, OnLoginCompleteListener listener) {
+    public void loginUser(String email, String password, Context context, OnLoginCompleteListener listener) {
         firebaseAuth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(authResult -> {
                     FirebaseUser user = firebaseAuth.getCurrentUser();
@@ -95,6 +95,15 @@ public class AuthManager {
                                 .addOnSuccessListener(documentSnapshot -> {
                                     if (documentSnapshot.exists() && documentSnapshot.contains("type")) {
                                         String type = documentSnapshot.getString("type");
+
+                                        // ✅ שמור את סוג המשתמש ב־SharedPreferences
+                                        if (context != null) {
+                                            context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+                                                    .edit()
+                                                    .putString("userType", type)
+                                                    .apply();
+                                        }
+
                                         listener.onSuccess(type);
                                     } else {
                                         listener.onFailure(new Exception("סוג המשתמש לא קיים במסד הנתונים"));
@@ -107,6 +116,7 @@ public class AuthManager {
                 })
                 .addOnFailureListener(listener::onFailure);
     }
+
 
     public String getCurrentUserId() {
         FirebaseUser user = firebaseAuth.getCurrentUser();

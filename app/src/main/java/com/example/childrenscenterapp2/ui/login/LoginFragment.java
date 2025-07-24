@@ -50,7 +50,7 @@ public class LoginFragment extends Fragment {
             return;
         }
 
-        authManager.loginUser(email, password, new AuthManager.OnLoginCompleteListener() {
+        authManager.loginUser(email, password, requireContext(), new AuthManager.OnLoginCompleteListener() {
             @Override
             public void onSuccess(String userType) {
                 Snackbar.make(requireView(), "התחברת בהצלחה כ־" + userType, Snackbar.LENGTH_SHORT).show();

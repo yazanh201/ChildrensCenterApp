@@ -6,6 +6,7 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.childrenscenterapp2.data.sync.ActivitySyncManager;
@@ -40,33 +41,13 @@ public class MainActivity extends AppCompatActivity {
 
         // ✅ טעינת התפקיד השמור
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-        boolean isLoggedIn = prefs.getBoolean("isLoggedIn", false);
+        boolean isLoggedIn = prefs.getBoolean("isLoggedIn", true);
         String userType = prefs.getString("userType", "");
 
         if (savedInstanceState == null) {
             if (isLoggedIn) {
-                Fragment destination = null;
-                switch (userType) {
-                    case "מנהל":
-                        destination = new AdminFragment();
-                        break;
-                    case "רכז":
-                        destination = new CoordinatorFragment();
-                        break;
-                    case "מדריך":
-                        destination = new GuideFragment();
-                        break;
-                    case "הורה":
-                        destination = new ParentFragment();
-                        break;
-                    case "ילד":
-                        destination = new ChildFragment();
-                        break;
-                    default:
-                        destination = new HomeFragment();
-                        break;
-                }
-
+                Fragment destination = getFragmentForUserType(userType);
+                clearBackStack(); // ✅ מנקה כל מסך קודם
                 loadFragment(destination);
             } else {
                 loadFragment(new HomeFragment());
@@ -88,12 +69,38 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * טוען Fragment לתוך המסך.
+     * טוען Fragment לתוך המסך הראשי (ללא backstack)
      */
     public void loadFragment(Fragment fragment) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.fragment_container, fragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
+        transaction.commit(); // ❌ לא מוסיפים ל־BackStack
+    }
+
+    /**
+     * מנקה את כל ה־BackStack
+     */
+    public void clearBackStack() {
+        getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+    }
+
+    /**
+     * מחזיר את ה־Fragment המתאים לפי סוג המשתמש
+     */
+    private Fragment getFragmentForUserType(String userType) {
+        switch (userType) {
+            case "מנהל":
+                return new AdminFragment();
+            case "רכז":
+                return new CoordinatorFragment();
+            case "מדריך":
+                return new GuideFragment();
+            case "הורה":
+                return new ParentFragment();
+            case "ילד":
+                return new ChildFragment();
+            default:
+                return new HomeFragment();
+        }
     }
 }
