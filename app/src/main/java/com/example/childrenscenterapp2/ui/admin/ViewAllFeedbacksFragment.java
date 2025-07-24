@@ -22,6 +22,7 @@ import java.util.Map;
 
 public class ViewAllFeedbacksFragment extends Fragment {
 
+    // משתנים עיקריים
     private FirebaseFirestore db;
     private RecyclerView recyclerView;
     private FeedbackAdapter adapter;
@@ -33,7 +34,10 @@ public class ViewAllFeedbacksFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
+        // ניפוח תצוגת הפרגמנט מה-XML
         View view = inflater.inflate(R.layout.fragment_view_all_feedbacks, container, false);
+
+        // אתחול RecyclerView להצגת ביקורות
         recyclerView = view.findViewById(R.id.recyclerViewFeedbacks);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new FeedbackAdapter(feedbackList);
@@ -41,29 +45,32 @@ public class ViewAllFeedbacksFragment extends Fragment {
 
         db = FirebaseFirestore.getInstance();
 
+        // קבלת מזהה פעילות מה-Bundle (אם קיים)
         if (getArguments() != null) {
             activityId = getArguments().getString("activityId");
-            loadFeedbacks();
+            loadFeedbacks(); // טעינת הביקורות מה-DB
         }
 
         return view;
     }
 
+    // פונקציה לטעינת הביקורות מהתת-collection registrations
     private void loadFeedbacks() {
         db.collection("activities")
                 .document(activityId)
                 .collection("registrations")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    feedbackList.clear();
+                    feedbackList.clear(); // ניקוי רשימה קודמת
                     for (DocumentSnapshot doc : queryDocumentSnapshots) {
                         Map<String, Object> feedbackData = doc.getData();
                         if (feedbackData != null) {
-                            feedbackList.add(feedbackData);
+                            feedbackList.add(feedbackData); // הוספת הביקורת לרשימה
                         }
                     }
-                    adapter.notifyDataSetChanged();
+                    adapter.notifyDataSetChanged(); // עדכון התצוגה
 
+                    // הצגת טקסט אם הרשימה ריקה
                     View emptyView = getView().findViewById(R.id.tvEmptyList);
                     if (feedbackList.isEmpty()) {
                         emptyView.setVisibility(View.VISIBLE);
@@ -75,5 +82,4 @@ public class ViewAllFeedbacksFragment extends Fragment {
                     Toast.makeText(getContext(), "שגיאה בטעינת ביקורות", Toast.LENGTH_SHORT).show();
                 });
     }
-
 }

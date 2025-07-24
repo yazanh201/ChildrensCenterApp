@@ -62,7 +62,7 @@
                 android:id="@+id/btnPhotos"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🖼️ העלאת תמונות"
+                android:text=" העלאת תמונות"
                 android:textSize="14sp"
                 android:backgroundTint="#009688"
                 android:textColor="#FFFFFF"
