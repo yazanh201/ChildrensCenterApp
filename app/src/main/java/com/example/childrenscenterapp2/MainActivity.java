@@ -2,6 +2,7 @@ package com.example.childrenscenterapp2;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -11,17 +12,26 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.example.childrenscenterapp2.data.sync.ActivitySyncManager;
 import com.example.childrenscenterapp2.data.sync.UserSyncManager;
+import com.example.childrenscenterapp2.data.sync.RegistrationSyncManager;
+import com.example.childrenscenterapp2.data.sync.UserRegistrationSyncManager;
 import com.example.childrenscenterapp2.ui.admin.AdminFragment;
 import com.example.childrenscenterapp2.ui.coordinator.CoordinatorFragment;
 import com.example.childrenscenterapp2.ui.guide.GuideFragment;
 import com.example.childrenscenterapp2.ui.home.HomeFragment;
 import com.example.childrenscenterapp2.ui.parent.ParentFragment;
 import com.example.childrenscenterapp2.ui.child.ChildFragment;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivitySyncManager activitySyncManager;
     private UserSyncManager userSyncManager;
+    private final List<RegistrationSyncManager> registrationSyncManagers = new ArrayList<>();
+    private final List<UserRegistrationSyncManager> userRegistrationSyncManagers = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +49,15 @@ public class MainActivity extends AppCompatActivity {
         userSyncManager = new UserSyncManager(this);
         userSyncManager.startListening();
 
+        // ✅ סנכרון כל תתי הקולקציות של הרשמות עבור כל פעילות
+        startRegistrationSyncForAllActivities();
+
+        // ✅ סנכרון הרשמות המשתמש הנוכחי
+        String currentUserId = getCurrentUserId();
+        if (currentUserId != null && !currentUserId.isEmpty()) {
+            startUserRegistrationSync(currentUserId);
+        }
+
         // ✅ טעינת התפקיד השמור
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         boolean isLoggedIn = prefs.getBoolean("isLoggedIn", true);
@@ -55,6 +74,35 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * התחלת האזנה לכל ההרשמות עבור כל פעילות
+     */
+    private void startRegistrationSyncForAllActivities() {
+        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+
+        firestore.collection("activities").get().addOnSuccessListener(querySnapshot -> {
+            for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                String activityId = doc.getId();
+                RegistrationSyncManager manager = new RegistrationSyncManager(this, activityId);
+                manager.startListening();
+                registrationSyncManagers.add(manager);
+                Log.d("MainActivity", "✅ האזנה להרשמות עבור פעילות: " + activityId);
+            }
+        }).addOnFailureListener(e -> {
+            Log.e("MainActivity", "❌ נכשל בשליפת פעילויות לסנכרון הרשמות: " + e.getMessage());
+        });
+    }
+
+    /**
+     * התחלת האזנה להרשמות משתמש ספציפי (למשתמש נוכחי)
+     */
+    private void startUserRegistrationSync(String userId) {
+        UserRegistrationSyncManager userManager = new UserRegistrationSyncManager(this, userId);
+        userManager.startListening();
+        userRegistrationSyncManagers.add(userManager);
+        Log.d("MainActivity", "✅ האזנה להרשמות המשתמש: " + userId);
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -66,6 +114,18 @@ public class MainActivity extends AppCompatActivity {
         if (userSyncManager != null) {
             userSyncManager.stopListening();
         }
+
+        // ✅ הפסקת האזנה לכל מנהלי ההרשמות של פעילויות
+        for (RegistrationSyncManager manager : registrationSyncManagers) {
+            manager.stopListening();
+        }
+
+        // ✅ הפסקת האזנה לכל מנהלי ההרשמות של המשתמשים
+        for (UserRegistrationSyncManager manager : userRegistrationSyncManagers) {
+            manager.stopListening();
+        }
+
+        Log.d("MainActivity", "🛑 הופסקו כל ההאזנות לסנכרון");
     }
 
     /**
@@ -102,5 +162,19 @@ public class MainActivity extends AppCompatActivity {
             default:
                 return new HomeFragment();
         }
+    }
+
+    /**
+     * פונקציה לדוגמה להשגת מזהה המשתמש הנוכחי
+     */
+    private String getCurrentUserId() {
+        // כאן אתה יכול לשלוף את מזהה המשתמש לפי איך שמנהל המשתמשים אצלך
+        // לדוגמה אם אתה משתמש ב-FirebaseAuth:
+        // FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        // return user != null ? user.getUid() : null;
+
+        // או מ-SharedPreferences, אם שמרת שם
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        return prefs.getString("userId", null);
     }
 }
