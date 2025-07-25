@@ -20,6 +20,10 @@ import com.google.firebase.firestore.*;
 import java.util.List;
 import androidx.appcompat.app.AlertDialog;
 
+/**
+ * Fragment המהווה את עמוד הבית של הורה.
+ * מאפשר להורה לצפות בפעילויות של ילדיו או לחפש פעילויות לפי יום/תחום.
+ */
 public class ParentFragment extends Fragment {
 
     private FirebaseFirestore firestore;
@@ -27,9 +31,12 @@ public class ParentFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true); // מאפשר תפריט ⋮
+        setHasOptionsMenu(true); // מאפשר תפריט ⋮ עם כפתור התנתקות
     }
 
+    /**
+     * יצירת ממשק המשתמש של הורה – עם כפתורים לחיפוש פעילויות ולצפייה בפעילויות של הילד.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -50,10 +57,13 @@ public class ParentFragment extends Fragment {
         return view;
     }
 
+    /**
+     * מעבר למסך חיפוש פעילויות לפי גיל, תחום ויום (בממשק הילד)
+     */
     private void openChildActivitiesSearch() {
         Fragment fragment = new com.example.childrenscenterapp2.ui.child.ChildActivitiesFragment();
         Bundle bundle = new Bundle();
-        bundle.putBoolean("isParentView", true);
+        bundle.putBoolean("isParentView", true); // מעביר פרמטר שזו גישה של הורה
         fragment.setArguments(bundle);
 
         getParentFragmentManager().beginTransaction()
@@ -62,6 +72,9 @@ public class ParentFragment extends Fragment {
                 .commit();
     }
 
+    /**
+     * שליפת תעודת הזהות של ההורה כדי לאתר את כל ילדיו במערכת.
+     */
     private void fetchParentIdAndChildren() {
         String currentUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
@@ -79,6 +92,9 @@ public class ParentFragment extends Fragment {
                 .addOnFailureListener(e -> Toast.makeText(getContext(), "❌ שגיאה בשליפת פרטי המשתמש", Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * שאילתת Firestore למציאת כל המשתמשים מסוג "ילד" עם אותה תעודת זהות של ההורה.
+     */
     private void fetchChildrenByIdNumber(String parentIdNumber) {
         firestore.collection("users")
                 .whereEqualTo("type", "ילד")
@@ -98,6 +114,9 @@ public class ParentFragment extends Fragment {
                 .addOnFailureListener(e -> Toast.makeText(getContext(), "❌ שגיאה בשליפת הילדים", Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * מציג דיאלוג לבחירת ילד מתוך רשימת הילדים, אם יש יותר מילד אחד.
+     */
     private void showChildrenSelectionDialog(List<DocumentSnapshot> children) {
         String[] childNames = new String[children.size()];
         for (int i = 0; i < children.size(); i++) {
@@ -113,6 +132,9 @@ public class ParentFragment extends Fragment {
                 .show();
     }
 
+    /**
+     * טעינת Fragment להצגת הפעילויות של ילד מסוים.
+     */
     private void openActivitiesForChild(String childUid) {
         Fragment fragment = new ParticipantsActivitiesFragment();
         Bundle bundle = new Bundle();
@@ -125,14 +147,17 @@ public class ParentFragment extends Fragment {
                 .commit();
     }
 
-    // === פונקציונליות התנתקות ===
+    // === פונקציונליות התנתקות מהחשבון ===
 
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_logout, menu);
+        inflater.inflate(R.menu.menu_logout, menu); // טוען את תפריט ⋮
         super.onCreateOptionsMenu(menu, inflater);
     }
 
+    /**
+     * טיפול בהתנתקות – ניקוי פרטי התחברות, חזרה לעמוד הבית.
+     */
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.action_logout) {

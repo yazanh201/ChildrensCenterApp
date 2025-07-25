@@ -29,15 +29,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Fragment המאפשר למדריך לבחור תמונות ולהעלות אותן ל-Firestore
+ * התמונות נשמרות כ־Base64 בתוך תת-collection בשם "photos" תחת הפעילות
+ */
 public class UploadPhotosFragment extends Fragment {
 
-    private static final int PICK_IMAGES_REQUEST = 1;
+    private static final int PICK_IMAGES_REQUEST = 1; // קוד בקשת בחירת תמונות
 
-    private List<Uri> imageUris = new ArrayList<>();
+    private List<Uri> imageUris = new ArrayList<>(); // רשימת URI של התמונות שנבחרו
     private RecyclerView recyclerView;
     private ImageAdapter imageAdapter;
-    private String activityId;
+    private String activityId; // מזהה הפעילות שאליה מעלים את התמונות
 
+    /**
+     * בניית התצוגה של המסך - כולל כפתורי בחירה והעלאה, ואת רשימת התמונות
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -61,13 +68,19 @@ public class UploadPhotosFragment extends Fragment {
         return view;
     }
 
+    /**
+     * פתיחת ממשק בחירת תמונות מהגלריה
+     */
     private void openImagePicker() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true); // מאפשר בחירה מרובה
         intent.setType("image/*");
         startActivityForResult(Intent.createChooser(intent, "בחר תמונות"), PICK_IMAGES_REQUEST);
     }
 
+    /**
+     * טיפול בתמונות שנבחרו מהגלריה והוספתן לרשימה
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -85,6 +98,9 @@ public class UploadPhotosFragment extends Fragment {
         }
     }
 
+    /**
+     * המרת כל תמונה ל־Base64 והעלאתה ל־Firestore תחת הפעילות
+     */
     private void uploadImagesToFirestore() {
         if (imageUris.isEmpty()) {
             Toast.makeText(getContext(), "לא נבחרו תמונות", Toast.LENGTH_SHORT).show();
@@ -103,26 +119,27 @@ public class UploadPhotosFragment extends Fragment {
             if (base64 != null) {
                 Map<String, Object> data = new HashMap<>();
                 data.put("imageBase64", base64);
-
                 data.put("timestamp", FieldValue.serverTimestamp());
 
                 firestore.collection("activities")
                         .document(activityId)
                         .collection("photos")
                         .add(data)
-                        .addOnSuccessListener(doc -> {
-                            Toast.makeText(getContext(), "תמונה נשמרה", Toast.LENGTH_SHORT).show();
-                        })
-                        .addOnFailureListener(e -> {
-                            Toast.makeText(getContext(), "שגיאה בשמירה", Toast.LENGTH_SHORT).show();
-                        });
+                        .addOnSuccessListener(doc ->
+                                Toast.makeText(getContext(), "תמונה נשמרה", Toast.LENGTH_SHORT).show())
+                        .addOnFailureListener(e ->
+                                Toast.makeText(getContext(), "שגיאה בשמירה", Toast.LENGTH_SHORT).show());
             }
         }
 
+        // ניקוי רשימת התמונות לאחר העלאה
         imageUris.clear();
         imageAdapter.notifyDataSetChanged();
     }
 
+    /**
+     * המרת URI של תמונה למחרוזת Base64
+     */
     private String uriToBase64(Uri uri) {
         try (InputStream inputStream = getActivity().getContentResolver().openInputStream(uri)) {
             byte[] bytes = getBytes(inputStream);
@@ -133,6 +150,9 @@ public class UploadPhotosFragment extends Fragment {
         }
     }
 
+    /**
+     * המרת קלט מסוג InputStream למערך בתים
+     */
     private byte[] getBytes(InputStream inputStream) throws IOException {
         ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
         int bufferSize = 1024;

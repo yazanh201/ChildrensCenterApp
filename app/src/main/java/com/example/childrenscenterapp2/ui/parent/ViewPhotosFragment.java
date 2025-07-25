@@ -19,6 +19,10 @@ import com.google.firebase.firestore.*;
 
 import java.util.*;
 
+/**
+ * פרגמנט להצגת תמונות מפוענחות של פעילות מסוימת (לפי activityId),
+ * כולל אפשרות לסינון לפי תאריך.
+ */
 public class ViewPhotosFragment extends Fragment {
 
     private static final String ARG_ACTIVITY_ID = "activityId";
@@ -26,10 +30,11 @@ public class ViewPhotosFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private PhotoDisplayAdapter adapter;
-    private List<Bitmap> imageList = new ArrayList<>();
+    private List<Bitmap> imageList = new ArrayList<>(); // תמונות מוצגות
     private FirebaseFirestore firestore;
     private Button btnSelectDate;
 
+    // יצירת מופע של הפרגמנט עם מזהה פעילות
     public static ViewPhotosFragment newInstance(String activityId) {
         ViewPhotosFragment fragment = new ViewPhotosFragment();
         Bundle args = new Bundle();
@@ -38,6 +43,7 @@ public class ViewPhotosFragment extends Fragment {
         return fragment;
     }
 
+    // יצירת View וטעינת כל התמונות כברירת מחדל
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -56,14 +62,16 @@ public class ViewPhotosFragment extends Fragment {
         btnSelectDate = view.findViewById(R.id.btnSelectDate);
         btnSelectDate.setOnClickListener(v -> openDatePicker());
 
+        // אם הגיעו פרמטרים - טען את התמונות
         if (getArguments() != null) {
             activityId = getArguments().getString(ARG_ACTIVITY_ID);
-            loadAllPhotos(); // טען את כל התמונות כברירת מחדל
+            loadAllPhotos(); // ברירת מחדל - הצגת כל התמונות
         }
 
         return view;
     }
 
+    // פתיחת דיאלוג לבחירת תאריך להצגת תמונות מאותו יום
     private void openDatePicker() {
         Calendar calendar = Calendar.getInstance();
         DatePickerDialog dialog = new DatePickerDialog(getContext(),
@@ -79,6 +87,7 @@ public class ViewPhotosFragment extends Fragment {
         dialog.show();
     }
 
+    // שליפה של כל התמונות בפעילות
     private void loadAllPhotos() {
         firestore.collection("activities")
                 .document(activityId)
@@ -91,6 +100,7 @@ public class ViewPhotosFragment extends Fragment {
                 });
     }
 
+    // שליפה של תמונות לפי תאריך מסוים (בין חצות עד חצות למחרת)
     private void fetchPhotosByDate(Date selectedDate) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(selectedDate);
@@ -116,6 +126,7 @@ public class ViewPhotosFragment extends Fragment {
                 });
     }
 
+    // טיפול בתוצאות של תמונות: המרה מ־Base64 ל־Bitmap והצגה
     private void handleSnapshot(QuerySnapshot snapshot) {
         imageList.clear();
         for (DocumentSnapshot doc : snapshot) {
@@ -137,6 +148,6 @@ public class ViewPhotosFragment extends Fragment {
             Toast.makeText(getContext(), "לא נמצאו תמונות לתאריך זה", Toast.LENGTH_SHORT).show();
         }
 
-        adapter.notifyDataSetChanged();
+        adapter.notifyDataSetChanged(); // רענון הרשימה
     }
 }

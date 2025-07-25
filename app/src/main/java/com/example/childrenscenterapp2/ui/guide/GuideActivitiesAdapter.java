@@ -19,7 +19,7 @@ public class GuideActivitiesAdapter extends RecyclerView.Adapter<GuideActivities
     private List<ActivityModel> activities;
     private OnParticipantsClickListener listener;
 
-    // ממשק ללחיצות על כפתורים שונים בכרטיס
+    // ממשק ללחיצות על כפתורים שונים בcardview (כפתור העלאת תמונות , כפתור צפיה במשתתפים)
     public interface OnParticipantsClickListener {
         void onParticipantsClick(String activityId, String activityName); // צפייה במשתתפים
         void onUploadPhotosClick(String activityId);                      // פתיחת פרגמנט העלאת תמונות

@@ -21,15 +21,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Fragment להצגת רשימת משתתפים בפעילות מסוימת
+ * משמש מדריך כדי לצפות ולתת משוב למשתתפים
+ */
 public class ParticipantsListFragment extends Fragment {
 
-    private static final String ARG_ACTIVITY_ID = "activityId";
-    private static final String ARG_ACTIVITY_NAME = "activityName";
+    private static final String ARG_ACTIVITY_ID = "activityId";     // מפתח ל־argument מזהה פעילות
+    private static final String ARG_ACTIVITY_NAME = "activityName"; // מפתח ל־argument שם פעילות
 
     private String activityId;
     private String activityName;
     private RecyclerView recyclerView;
 
+    /**
+     * יצירת מופע חדש של Fragment עם פרטי הפעילות כ־arguments
+     */
     public static ParticipantsListFragment newInstance(String activityId, String activityName) {
         ParticipantsListFragment fragment = new ParticipantsListFragment();
         Bundle args = new Bundle();
@@ -39,6 +46,9 @@ public class ParticipantsListFragment extends Fragment {
         return fragment;
     }
 
+    /**
+     * בניית התצוגה של המסך - כולל אתחול RecyclerView וטעינת נתונים
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -47,15 +57,20 @@ public class ParticipantsListFragment extends Fragment {
         recyclerView = view.findViewById(R.id.rvParticipants);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
+        // שליפת פרטי הפעילות מתוך arguments
         if (getArguments() != null) {
             activityId = getArguments().getString(ARG_ACTIVITY_ID);
             activityName = getArguments().getString(ARG_ACTIVITY_NAME);
         }
 
-        loadParticipants();
+        loadParticipants(); // טען משתתפים מה־Firestore
         return view;
     }
 
+    /**
+     * טעינת רשימת המשתתפים הרשומים לפעילות מתוך Firestore
+     * ושיוכם ל־ParticipantsAdapter_guide
+     */
     private void loadParticipants() {
         FirebaseFirestore.getInstance()
                 .collection("activities")
@@ -66,12 +81,15 @@ public class ParticipantsListFragment extends Fragment {
                     List<Map<String, Object>> participants = new ArrayList<>();
                     for (QueryDocumentSnapshot doc : snapshot) {
                         Map<String, Object> data = doc.getData();
-                        data.put("registrationId", doc.getId());
+                        data.put("registrationId", doc.getId()); // הוספת מזהה רשומה
                         participants.add(data);
                     }
+
+                    // יצירת ומתן האדפטר לרשימה
                     ParticipantsAdapter_guide adapter = new ParticipantsAdapter_guide(participants, activityId);
                     recyclerView.setAdapter(adapter);
                 })
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "שגיאה בטעינת משתתפים", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "שגיאה בטעינת משתתפים", Toast.LENGTH_SHORT).show());
     }
 }

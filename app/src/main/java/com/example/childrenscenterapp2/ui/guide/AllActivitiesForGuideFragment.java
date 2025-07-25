@@ -15,6 +15,10 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.*;
 
+/**
+ * Fragment שמציג את כל הפעילויות עבור מדריך
+ * כולל סינון לפי תחום, חודש ומדריך, וחישוב סטטיסטיקות כמו כמות משתתפים ודירוג ממוצע
+ */
 public class AllActivitiesForGuideFragment extends Fragment {
 
     private RecyclerView recyclerView;
@@ -24,9 +28,13 @@ public class AllActivitiesForGuideFragment extends Fragment {
 
     private Spinner spinnerDomain, spinnerMonth, spinnerGuide;
 
+    // מפות לשמירת כמות משתתפים ודירוג ממוצע לכל פעילות לפי ID
     private final Map<String, Integer> participantCountMap = new HashMap<>();
     private final Map<String, Double> averageScoreMap = new HashMap<>();
 
+    /**
+     * בניית התצוגה הראשית של המסך
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -40,7 +48,7 @@ public class AllActivitiesForGuideFragment extends Fragment {
         spinnerMonth = view.findViewById(R.id.spinnerMonth);
         spinnerGuide = view.findViewById(R.id.spinnerGuide);
 
-        // הסתרת כפתורים לא רלוונטיים
+        // הסתרת כפתורים לא רלוונטיים עבור מדריך
         Button btnSortByParticipants = view.findViewById(R.id.btnSortByParticipants);
         Button btnTop10Activities = view.findViewById(R.id.btnTop10Activities);
         btnSortByParticipants.setVisibility(View.GONE);
@@ -56,7 +64,9 @@ public class AllActivitiesForGuideFragment extends Fragment {
         return view;
     }
 
-
+    /**
+     * שליפת כל הפעילויות מ-Firestore והצגתן ברשימה
+     */
     private void loadActivitiesFromFirestore() {
         firestore.collection("activities")
                 .get()
@@ -68,23 +78,28 @@ public class AllActivitiesForGuideFragment extends Fragment {
                         activityList.add(activity);
                     }
                     adapter.setData(activityList);
-                    setupSpinners();
-                    calculateStatsForActivities();
+                    setupSpinners();           // הגדרת אפשרויות הסינון
+                    calculateStatsForActivities(); // חישוב סטטיסטיקות
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(requireContext(), "שגיאה בטעינת פעילויות", Toast.LENGTH_SHORT).show();
                 });
     }
 
+    /**
+     * יצירת רשימות אפשרויות עבור הספינרים (תחום, חודש, מדריך)
+     */
     private void setupSpinners() {
         List<String> domains = new ArrayList<>();
         List<String> months = new ArrayList<>();
         List<String> guides = new ArrayList<>();
 
+        // פריט ברירת מחדל בכל Spinner
         domains.add("חיפוש לפי תחום");
         months.add("חיפוש לפי חודש");
         guides.add("חיפוש לפי מדריך");
 
+        // הוספת ערכים ייחודיים מתוך רשימת הפעילויות
         for (ActivityModel activity : activityList) {
             if (activity.getDomain() != null && !domains.contains(activity.getDomain()))
                 domains.add(activity.getDomain());
@@ -100,6 +115,7 @@ public class AllActivitiesForGuideFragment extends Fragment {
         spinnerMonth.setAdapter(createAdapter(months));
         spinnerGuide.setAdapter(createAdapter(guides));
 
+        // מאזין לשינוי בחירה בכל אחד מהספינרים → מבצע סינון
         AdapterView.OnItemSelectedListener filterListener = new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -115,6 +131,9 @@ public class AllActivitiesForGuideFragment extends Fragment {
         spinnerGuide.setOnItemSelectedListener(filterListener);
     }
 
+    /**
+     * סינון רשימת הפעילויות לפי התחום, החודש והמדריך שנבחרו
+     */
     private void filterActivities() {
         String selectedDomain = spinnerDomain.getSelectedItem().toString();
         String selectedMonth = spinnerMonth.getSelectedItem().toString();
@@ -134,12 +153,18 @@ public class AllActivitiesForGuideFragment extends Fragment {
         adapter.setData(filteredList);
     }
 
+    /**
+     * יצירת ArrayAdapter עבור Spinner
+     */
     private ArrayAdapter<String> createAdapter(List<String> items) {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, items);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         return adapter;
     }
 
+    /**
+     * חישוב מספר המשתתפים ודירוג ממוצע עבור כל פעילות (מתוך תת-collection registrations)
+     */
     private void calculateStatsForActivities() {
         for (ActivityModel activity : activityList) {
             String activityId = activity.getId();
@@ -168,6 +193,7 @@ public class AllActivitiesForGuideFragment extends Fragment {
                         participantCountMap.put(activityId, count);
                         averageScoreMap.put(activityId, average);
 
+                        // עדכון הנתונים באדפטר (כמות משתתפים ודירוג)
                         adapter.updateStatsForActivity(activityId, count, average);
                     });
         }

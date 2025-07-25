@@ -25,6 +25,10 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Fragment עבור מדריך להצגת הפעילויות שהוא אחראי עליהן
+ * כולל כפתורים לצפייה במשתתפים והעלאת תמונות לכל פעילות
+ */
 public class GuideActivitiesFragment extends Fragment {
 
     private RecyclerView recyclerView;
@@ -34,6 +38,9 @@ public class GuideActivitiesFragment extends Fragment {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final CollectionReference activitiesRef = db.collection("activities");
 
+    /**
+     * יצירת התצוגה של המסך (כולל RecyclerView)
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -44,24 +51,28 @@ public class GuideActivitiesFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerViewActivities);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
+        // יצירת Adapter עם האזנה ללחיצות על כפתורי הפעילות
         adapter = new GuideActivitiesAdapter(activityList, new GuideActivitiesAdapter.OnParticipantsClickListener() {
             @Override
             public void onParticipantsClick(String activityId, String activityName) {
-                openParticipantsListFragment(activityId, activityName);
+                openParticipantsListFragment(activityId, activityName); // צפייה במשתתפים
             }
 
             @Override
             public void onUploadPhotosClick(String activityId) {
-                openUploadPhotosFragment(activityId);
+                openUploadPhotosFragment(activityId); // העלאת תמונות
             }
         });
 
         recyclerView.setAdapter(adapter);
-        loadActivities();
+        loadActivities(); // טעינת הפעילויות מהמדריך המחובר
 
         return view;
     }
 
+    /**
+     * טעינת פעילויות שהמדריך הנוכחי אחראי עליהן
+     */
     private void loadActivities() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) {
@@ -71,6 +82,7 @@ public class GuideActivitiesFragment extends Fragment {
 
         String currentGuideUid = currentUser.getUid();
 
+        // שליפת רשימת הפעילויות המשויכות למדריך מתוך users
         db.collection("users")
                 .whereEqualTo("uid", currentGuideUid)
                 .get()
@@ -80,12 +92,14 @@ public class GuideActivitiesFragment extends Fragment {
                         return;
                     }
 
+                    // שליפת רשימת שמות הפעילויות מתוך מסמך המשתמש
                     List<String> guideActivities = (List<String>) querySnapshot.getDocuments().get(0).get("activities");
                     if (guideActivities == null || guideActivities.isEmpty()) {
                         Toast.makeText(getContext(), "לא נמצאו פעילויות למדריך", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
+                    // שליפת כל הפעילויות ובדיקת התאמה לפי שם
                     activitiesRef.get()
                             .addOnSuccessListener(activitySnapshot -> {
                                 activityList.clear();
@@ -93,11 +107,12 @@ public class GuideActivitiesFragment extends Fragment {
                                     ActivityModel activity = doc.toObject(ActivityModel.class);
                                     activity.setId(doc.getId());
 
+                                    // רק פעילויות שהמדריך אחראי להן
                                     if (guideActivities.contains(activity.getName())) {
                                         activityList.add(activity);
                                     }
                                 }
-                                adapter.notifyDataSetChanged();
+                                adapter.notifyDataSetChanged(); // רענון התצוגה
                             })
                             .addOnFailureListener(e -> {
                                 Toast.makeText(getContext(), "שגיאה בטעינת פעילויות", Toast.LENGTH_SHORT).show();
@@ -111,6 +126,9 @@ public class GuideActivitiesFragment extends Fragment {
                 });
     }
 
+    /**
+     * מעבר לפרגמנט הצגת רשימת משתתפים של פעילות
+     */
     private void openParticipantsListFragment(String activityId, String activityName) {
         ParticipantsListFragment fragment = new ParticipantsListFragment();
         Bundle args = new Bundle();
@@ -124,6 +142,9 @@ public class GuideActivitiesFragment extends Fragment {
         transaction.commit();
     }
 
+    /**
+     * מעבר לפרגמנט העלאת תמונות לפעילות
+     */
     private void openUploadPhotosFragment(String activityId) {
         UploadPhotosFragment fragment = new UploadPhotosFragment();
         Bundle args = new Bundle();

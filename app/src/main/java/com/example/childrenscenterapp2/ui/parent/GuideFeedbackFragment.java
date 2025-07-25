@@ -21,6 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Fragment להצגת משוב שניתן לילד ע"י מדריך בפעילות מסוימת.
+ * מחפש את הרישום של הילד לפעילות וטוען את השדות feedbackScore ו־feedbackComment.
+ */
 public class GuideFeedbackFragment extends Fragment {
 
     private static final String ARG_ACTIVITY_ID = "activityId";
@@ -33,10 +37,14 @@ public class GuideFeedbackFragment extends Fragment {
     private TextView tvNoFeedback;
     private GuideFeedbackAdapter adapter;
 
-    public GuideFeedbackFragment() {
-        // נדרש constructor ריק
-    }
+    /**
+     * חובה קונסטרקטור ריק עבור Fragment
+     */
+    public GuideFeedbackFragment() {}
 
+    /**
+     * יצירת מופע של Fragment עם פרמטרים (activityId ו־childId)
+     */
     public static GuideFeedbackFragment newInstance(String activityId, String childId) {
         GuideFeedbackFragment fragment = new GuideFeedbackFragment();
         Bundle args = new Bundle();
@@ -46,6 +54,9 @@ public class GuideFeedbackFragment extends Fragment {
         return fragment;
     }
 
+    /**
+     * קריאה בעת יצירת ה־Fragment – שליפת הפרמטרים מה־Bundle
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,6 +67,9 @@ public class GuideFeedbackFragment extends Fragment {
         }
     }
 
+    /**
+     * יצירת תצוגת ה־Fragment (טעינת XML והגדרת RecyclerView)
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -70,11 +84,14 @@ public class GuideFeedbackFragment extends Fragment {
         adapter = new GuideFeedbackAdapter(new ArrayList<>());
         recyclerView.setAdapter(adapter);
 
-        loadFeedbacks();
+        loadFeedbacks(); // טען את הנתונים מ־Firestore
 
         return view;
     }
 
+    /**
+     * שליפת המשובים של הילד מתוך Firestore לפי activityId ו־childId
+     */
     private void loadFeedbacks() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -93,6 +110,7 @@ public class GuideFeedbackFragment extends Fragment {
                     List<Map<String, Object>> feedbacks = new ArrayList<>();
                     for (QueryDocumentSnapshot doc : snapshot) {
                         Map<String, Object> data = doc.getData();
+                        // רק אם יש משוב כלשהו (ציון או הערה), נוסיף לרשימה
                         if (data.containsKey("feedbackScore") || data.containsKey("feedbackComment")) {
                             feedbacks.add(data);
                         }
@@ -113,6 +131,9 @@ public class GuideFeedbackFragment extends Fragment {
                 });
     }
 
+    /**
+     * הצגת הודעה כאשר אין משוב להצגה
+     */
     private void showNoFeedbackMessage() {
         recyclerView.setVisibility(View.GONE);
         tvNoFeedback.setVisibility(View.VISIBLE);

@@ -17,17 +17,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Adapter להצגת רשימת משתתפים בפעילות עבור מדריך
+ * כולל כפתור להוספת משוב (ציון + תגובה מילולית) לכל משתתף
+ */
 public class ParticipantsAdapter_guide extends RecyclerView.Adapter<ParticipantsAdapter_guide.ParticipantViewHolder> {
 
-    private List<Map<String, Object>> participants;
-    private String activityId;
-    private Map<String, String> emailToNameCache = new HashMap<>();
+    private List<Map<String, Object>> participants; // רשימת משתתפים (ממפות)
+    private String activityId;                      // מזהה הפעילות הנוכחית
+    private Map<String, String> emailToNameCache = new HashMap<>(); // קאש להמרת אימייל לשם
 
+    /**
+     * בנאי - מקבל את רשימת המשתתפים ואת מזהה הפעילות
+     */
     public ParticipantsAdapter_guide(List<Map<String, Object>> participants, String activityId) {
         this.participants = participants;
         this.activityId = activityId;
     }
 
+    /**
+     * יצירת ViewHolder עבור פריט משתתף
+     */
     @NonNull
     @Override
     public ParticipantViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -35,14 +45,18 @@ public class ParticipantsAdapter_guide extends RecyclerView.Adapter<Participants
         return new ParticipantViewHolder(view);
     }
 
+    /**
+     * כל CARDVIEW מציגים בו שם של הילד וכפתור משוב על הילד
+     * קישור משתתף לפריט תצוגה
+     */
     @Override
     public void onBindViewHolder(@NonNull ParticipantViewHolder holder, int position) {
         Map<String, Object> participant = participants.get(position);
-        String childNameOrEmail = (String) participant.get("childName");
+        String childNameOrEmail = (String) participant.get("childName"); // יכול להיות שם או מייל
         String childId = (String) participant.get("childId");
 
+        // אם זה מייל – שלוף את השם מתוך Firestore
         if (childNameOrEmail != null && childNameOrEmail.contains("@")) {
-            // מדובר במייל – ננסה לחפש את השם בטבלת users
             if (emailToNameCache.containsKey(childNameOrEmail)) {
                 holder.tvName.setText(emailToNameCache.get(childNameOrEmail));
             } else {
@@ -62,10 +76,11 @@ public class ParticipantsAdapter_guide extends RecyclerView.Adapter<Participants
                         .addOnFailureListener(e -> holder.tvName.setText("שגיאה בטעינה"));
             }
         } else {
-            // זה שם רגיל
+            // הצג כשם רגיל
             holder.tvName.setText(childNameOrEmail);
         }
 
+        // לחיצה על כפתור הוספת משוב למשתתף
         holder.btnFeedback.setOnClickListener(v -> {
             DialogFeedbackInput.showDialog(v.getContext(), (score, comment) -> {
                 FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -88,11 +103,17 @@ public class ParticipantsAdapter_guide extends RecyclerView.Adapter<Participants
         });
     }
 
+    /**
+     * מספר המשתתפים ברשימה
+     */
     @Override
     public int getItemCount() {
         return participants.size();
     }
 
+    /**
+     * ViewHolder שמייצג פריט של משתתף יחיד עם כפתור הוספת משוב
+     */
     static class ParticipantViewHolder extends RecyclerView.ViewHolder {
         TextView tvName;
         Button btnFeedback;

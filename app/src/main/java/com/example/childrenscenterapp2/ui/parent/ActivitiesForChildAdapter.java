@@ -22,13 +22,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Adapter להצגת רשימת פעילויות עבור ילד אחד, עם אפשרות להורה לתת משוב, לצפות במשוב מדריך או בתמונות.
+ */
 public class ActivitiesForChildAdapter extends RecyclerView.Adapter<ActivitiesForChildAdapter.ActivityViewHolder> {
 
-    private List<String> activities; // פורמט: שם@id
-    private String childId;
-    private FragmentManager fragmentManager;
-    private String userRole = "parent"; // ברירת מחדל - הורה
+    private List<String> activities; // פורמט: "activityName@activityId"
+    private String childId; // מזהה הילד
+    private FragmentManager fragmentManager; // ניהול מעבר בין פרגמנטים
+    private String userRole = "parent"; // תפקיד המשתמש (ברירת מחדל: הורה)
 
+    /**
+     * בנאי של האדפטר
+     * @param activities רשימת פעילויות בפורמט "שם@מזהה"
+     * @param childId מזהה הילד
+     * @param fragmentManager ניהול ניווט בין פרגמנטים
+     */
     public ActivitiesForChildAdapter(List<String> activities, String childId, FragmentManager fragmentManager) {
         this.activities = activities;
         this.childId = childId;
@@ -66,14 +75,14 @@ public class ActivitiesForChildAdapter extends RecyclerView.Adapter<ActivitiesFo
         String activityId = parts[1];
         holder.tvActivityName.setText(activityName);
 
-        // 👇 הסתרה לפי תפקיד - אם לא הורה, הסתר כפתורים
+        // אם לא מדובר בהורה – הסתרת הכפתורים
         if (!"parent".equals(userRole)) {
             holder.btnAddFeedback.setVisibility(View.GONE);
             holder.btnViewGuideFeedback.setVisibility(View.GONE);
             holder.btnViewPhotos.setVisibility(View.GONE);
         }
 
-        // ✔ שליחת משוב הורה
+        // שליחת משוב כהורה
         holder.btnAddFeedback.setOnClickListener(v -> {
             DialogFeedbackInput.showDialog(v.getContext(), (score, comment) -> {
                 FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -105,7 +114,7 @@ public class ActivitiesForChildAdapter extends RecyclerView.Adapter<ActivitiesFo
             });
         });
 
-        // ✔ צפייה במשוב מדריך
+        // הצגת משוב מדריך
         holder.btnViewGuideFeedback.setOnClickListener(v -> {
             GuideFeedbackFragment fragment = GuideFeedbackFragment.newInstance(activityId, childId);
             fragmentManager.beginTransaction()
@@ -114,7 +123,7 @@ public class ActivitiesForChildAdapter extends RecyclerView.Adapter<ActivitiesFo
                     .commit();
         });
 
-        // ✔ צפייה בתמונות
+        // הצגת תמונות מהפעילות
         holder.btnViewPhotos.setOnClickListener(v -> {
             ViewPhotosFragment fragment = ViewPhotosFragment.newInstance(activityId);
             fragmentManager.beginTransaction()
@@ -129,6 +138,9 @@ public class ActivitiesForChildAdapter extends RecyclerView.Adapter<ActivitiesFo
         return activities.size();
     }
 
+    /**
+     * ViewHolder עבור כל כרטיס פעילות
+     */
     static class ActivityViewHolder extends RecyclerView.ViewHolder {
         TextView tvActivityName;
         Button btnAddFeedback, btnViewGuideFeedback, btnViewPhotos;
@@ -138,7 +150,7 @@ public class ActivitiesForChildAdapter extends RecyclerView.Adapter<ActivitiesFo
             tvActivityName = itemView.findViewById(R.id.tvActivityName);
             btnAddFeedback = itemView.findViewById(R.id.btnAddParentFeedback);
             btnViewGuideFeedback = itemView.findViewById(R.id.btnViewGuideFeedback);
-            btnViewPhotos = itemView.findViewById(R.id.btnViewPhotos); // ודא שקיים ב-XML
+            btnViewPhotos = itemView.findViewById(R.id.btnViewPhotos);
         }
     }
 }

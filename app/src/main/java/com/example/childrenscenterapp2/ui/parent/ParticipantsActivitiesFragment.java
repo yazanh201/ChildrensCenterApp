@@ -20,6 +20,10 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Fragment להצגת כל הפעילויות שאליהן הילד נרשם,
+ * כולל כפתורים להוספת משוב הורה, צפייה בתמונות ובמשוב מדריך.
+ */
 public class ParticipantsActivitiesFragment extends Fragment {
 
     private RecyclerView recyclerView;
@@ -38,18 +42,22 @@ public class ParticipantsActivitiesFragment extends Fragment {
         recyclerView = view.findViewById(R.id.rvActivitiesForChild);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
+        // יצירת האדאפטר עם רשימת הפעילויות
         adapter = new ActivitiesForChildAdapter(activityNames, null, getParentFragmentManager());
-        adapter.setUserRole("parent");
+        adapter.setUserRole("parent"); // קובע שהתצוגה עבור הורה
         recyclerView.setAdapter(adapter);
 
+        // קבלת הפרמטרים שהועברו ל־Fragment
         if (getArguments() != null) {
             if (getArguments().containsKey("childUid")) {
+                // אם הועבר מזהה ילד – שלוף את הפעילויות שלו מהמסמכים
                 childUid = getArguments().getString("childUid");
                 adapter.setChildId(childUid);
                 Log.d("ActivitiesDebug", "Child UID: " + childUid);
                 loadActivitiesForChild(childUid);
 
             } else if (getArguments().containsKey("activityIds")) {
+                // אם הועברה רשימת מזהי פעילויות – הצג כפי שהיא
                 List<String> ids = getArguments().getStringArrayList("activityIds");
                 if (ids != null && !ids.isEmpty()) {
                     activityNames.clear();
@@ -67,6 +75,10 @@ public class ParticipantsActivitiesFragment extends Fragment {
         return view;
     }
 
+    /**
+     * שליפת כל הפעילויות של הילד לפי תת־אוסף registrations במסמכי המשתמש.
+     * כל פעילות תוצג בפורמט: תחום@activityId
+     */
     private void loadActivitiesForChild(String childUid) {
         FirebaseFirestore.getInstance()
                 .collection("users")
@@ -87,14 +99,14 @@ public class ParticipantsActivitiesFragment extends Fragment {
                         String domain = doc.getString("domain");
 
                         if (activityId != null && domain != null) {
-                            String display = domain + "@" + activityId;
+                            String display = domain + "@" + activityId; // פורמט אחיד להצגה באדאפטר
                             if (!activityNames.contains(display)) {
                                 activityNames.add(display);
                             }
                         }
                     }
 
-                    adapter.notifyDataSetChanged();
+                    adapter.notifyDataSetChanged(); // רענון רשימת הפעילויות
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "❌ שגיאה בטעינת הנתונים", Toast.LENGTH_SHORT).show();

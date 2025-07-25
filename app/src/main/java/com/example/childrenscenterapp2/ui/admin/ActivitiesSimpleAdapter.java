@@ -22,14 +22,19 @@ import java.util.Map;
 
 public class ActivitiesSimpleAdapter extends RecyclerView.Adapter<ActivitiesSimpleAdapter.ViewHolder> {
 
+    // רשימת הפעילויות שמוצגות ברשימה
     private final List<Map<String, Object>> activityList;
+
+    // מנהל ה־Fragments עבור פתיחת מסכי צפייה בביקורות
     private final FragmentManager fragmentManager;
 
+    // בנאי שמקבל את רשימת הפעילויות ואת FragmentManager
     public ActivitiesSimpleAdapter(List<Map<String, Object>> activityList, FragmentManager fragmentManager) {
         this.activityList = activityList;
         this.fragmentManager = fragmentManager;
     }
 
+    // יצירת ViewHolder חדש לכל פריט ברשימה
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -38,6 +43,7 @@ public class ActivitiesSimpleAdapter extends RecyclerView.Adapter<ActivitiesSimp
         return new ViewHolder(view);
     }
 
+    // קישור נתונים לכל פריט ברשימה לפי מיקום
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Map<String, Object> activity = activityList.get(position);
@@ -48,12 +54,12 @@ public class ActivitiesSimpleAdapter extends RecyclerView.Adapter<ActivitiesSimp
         holder.tvGuide.setText("מדריך: " + activity.get("guideName"));
         holder.tvMonth.setText("חודש: " + activity.get("month"));
 
-        // גילאים
+        // טווח גילאים
         Object minAge = activity.get("minAge");
         Object maxAge = activity.get("maxAge");
         holder.tvAgeRange.setText("גילאים: " + minAge + " עד " + maxAge);
 
-        // ימים
+        // ימים שבהם הפעילות מתקיימת
         List<String> days = (List<String>) activity.get("days");
         if (days != null && !days.isEmpty()) {
             holder.tvDays.setText("ימים: " + String.join(", ", days));
@@ -61,14 +67,14 @@ public class ActivitiesSimpleAdapter extends RecyclerView.Adapter<ActivitiesSimp
             holder.tvDays.setText("ימים: לא צוין");
         }
 
-        // משתתפים
+        // מספר משתתפים מקסימלי
         holder.tvMaxParticipants.setText("משתתפים מקס': " + activity.get("maxParticipants"));
 
-        // חד פעמית
+        // האם הפעילות חד פעמית
         boolean oneTime = activity.get("oneTime") != null && (boolean) activity.get("oneTime");
         holder.tvOneTime.setText("חד פעמית: " + (oneTime ? "כן" : "לא"));
 
-        // הגדרת Spinner סטטוס
+        // הגדרת Spinner לבחירת סטטוס
         ArrayAdapter<CharSequence> statusAdapter = ArrayAdapter.createFromResource(
                 holder.itemView.getContext(),
                 R.array.status_options,
@@ -77,12 +83,12 @@ public class ActivitiesSimpleAdapter extends RecyclerView.Adapter<ActivitiesSimp
         statusAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         holder.spinnerStatus.setAdapter(statusAdapter);
 
-        // הצגת סטטוס נוכחי
+        // סטטוס נוכחי של הפעילות
         String currentStatus = activity.get("status") != null ? activity.get("status").toString() : "בסדר";
         int index = statusAdapter.getPosition(currentStatus);
         holder.spinnerStatus.setSelection(index >= 0 ? index : 1); // ברירת מחדל: "בסדר"
 
-        // לחצן שמירה
+        // כפתור לשמירת הסטטוס שבחר המנהל
         holder.btnSaveStatus.setOnClickListener(v -> {
             String selectedStatus = holder.spinnerStatus.getSelectedItem().toString();
             FirebaseFirestore.getInstance()
@@ -91,14 +97,14 @@ public class ActivitiesSimpleAdapter extends RecyclerView.Adapter<ActivitiesSimp
                     .update("status", selectedStatus)
                     .addOnSuccessListener(unused -> {
                         Toast.makeText(holder.itemView.getContext(), "✅ סטטוס עודכן ל-" + selectedStatus, Toast.LENGTH_SHORT).show();
-                        activity.put("status", selectedStatus); // עדכון מקומי
+                        activity.put("status", selectedStatus); // עדכון מקומי של הרשימה
                     })
                     .addOnFailureListener(e -> {
                         Toast.makeText(holder.itemView.getContext(), "❌ שגיאה בשמירת סטטוס", Toast.LENGTH_SHORT).show();
                     });
         });
 
-        // כפתור צפייה בביקורות
+        // כפתור לצפייה בכל הביקורות של הפעילות
         holder.btnViewReviews.setOnClickListener(v -> {
             Bundle bundle = new Bundle();
             bundle.putString("activityId", activityId);
@@ -113,17 +119,20 @@ public class ActivitiesSimpleAdapter extends RecyclerView.Adapter<ActivitiesSimp
         });
     }
 
+    // מספר הפריטים ברשימה
     @Override
     public int getItemCount() {
         return activityList.size();
     }
 
+    // מחזיק את רכיבי התצוגה של כל כרטיס פעילות
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvDomain, tvGuide, tvMonth,
                 tvAgeRange, tvDays, tvMaxParticipants, tvOneTime;
         Button btnViewReviews, btnSaveStatus;
         Spinner spinnerStatus;
 
+        // אתחול רכיבי התצוגה לפי מזהים מתוך ה-XML
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvName = itemView.findViewById(R.id.tvName);

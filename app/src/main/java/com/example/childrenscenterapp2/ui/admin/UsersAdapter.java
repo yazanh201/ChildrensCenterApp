@@ -15,45 +15,59 @@ import com.example.childrenscenterapp2.data.models.User;
 import java.util.List;
 
 /**
- * Adapter להצגת משתמשים עם כפתור מחיקה
+ * Adapter להצגת רשימת משתמשים ב-RecyclerView,
+ * כולל כפתור מחיקה עבור כל משתמש
  */
 public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHolder> {
 
-    private final List<User> userList;
-    private final OnUserDeleteListener deleteListener;
+    private final List<User> userList; // רשימת המשתמשים
+    private final OnUserDeleteListener deleteListener; // ממשק לפעולת מחיקה
 
-    // ממשק למחיקת משתמש
+    /**
+     * ממשק למחיקת משתמש - מועבר מבחוץ (למשל מתוך Fragment)
+     */
     public interface OnUserDeleteListener {
         void onDelete(User user);
     }
 
-    // בנאי עם listener למחיקה
+    /**
+     * בנאי - מקבל רשימת משתמשים ומאזין למחיקה
+     */
     public UsersAdapter(List<User> userList, OnUserDeleteListener deleteListener) {
         this.userList = userList;
         this.deleteListener = deleteListener;
     }
 
+    /**
+     * ViewHolder פנימי שמחזיק את רכיבי התצוגה של כל פריט
+     */
     public static class UserViewHolder extends RecyclerView.ViewHolder {
         TextView txtName, txtEmail, txtType;
         Button btnDelete;
 
         public UserViewHolder(@NonNull View itemView) {
             super(itemView);
-            txtName = itemView.findViewById(R.id.txtName);
-            txtEmail = itemView.findViewById(R.id.txtEmail);
-            txtType = itemView.findViewById(R.id.txtType);
-            btnDelete = itemView.findViewById(R.id.btnDelete);
+            txtName = itemView.findViewById(R.id.txtName);   // שם המשתמש
+            txtEmail = itemView.findViewById(R.id.txtEmail); // אימייל
+            txtType = itemView.findViewById(R.id.txtType);   // סוג המשתמש (guide, parent וכו')
+            btnDelete = itemView.findViewById(R.id.btnDelete); // כפתור מחיקה
         }
     }
 
+    /**
+     * יצירת ViewHolder חדש (קריאה אוטומטית כשנדרש)
+     */
     @NonNull
     @Override
     public UserViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_user, parent, false);
+                .inflate(R.layout.item_user, parent, false); // שימוש ב־item_user.xml
         return new UserViewHolder(view);
     }
 
+    /**
+     * קישור נתוני המשתמש לרכיבי התצוגה
+     */
     @Override
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
         User user = userList.get(position);
@@ -61,7 +75,7 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHold
         holder.txtEmail.setText(user.getEmail());
         holder.txtType.setText(user.getType());
 
-        // לחיצה על מחיקה
+        // טיפול בלחיצה על כפתור מחיקה
         holder.btnDelete.setOnClickListener(v -> {
             if (deleteListener != null) {
                 deleteListener.onDelete(user);
@@ -69,6 +83,9 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHold
         });
     }
 
+    /**
+     * מחזיר את מספר המשתמשים ברשימה
+     */
     @Override
     public int getItemCount() {
         return userList.size();
