@@ -14,14 +14,31 @@ import com.google.firebase.firestore.*;
 
 import java.util.*;
 
+/**
+ * {@code GuideListFragment} – פרגמנט להצגת רשימת המדריכים במערכת.
+ * <p>
+ * תפקיד המחלקה:
+ * <ul>
+ *   <li>טעינת רשימת המדריכים מ-Firebase Firestore בזמן אמת.</li>
+ *   <li>הצגת המדריכים ב-RecyclerView באמצעות {@link GuideAdapter}.</li>
+ *   <li>אפשרות לסינון המדריכים לפי שם, תחום התמחות ופעילויות.</li>
+ * </ul>
+ */
 public class GuideListFragment extends Fragment {
 
+    /** RecyclerView להצגת רשימת המדריכים */
     private RecyclerView recyclerView;
+
+    /** אדפטר מותאם אישית להצגת פרטי המדריכים */
     private GuideAdapter guideAdapter;
+
+    /** חיבור ל-Firebase Firestore */
     private FirebaseFirestore firestore;
 
+    /** Spinners לסינון לפי שם, תחום התמחות ופעילות */
     private Spinner spinnerGuideName, spinnerSpecialization, spinnerActivity;
 
+    /** רשימת כל מסמכי המדריכים */
     private List<DocumentSnapshot> allGuideDocs = new ArrayList<>();
 
     @Nullable
@@ -41,11 +58,17 @@ public class GuideListFragment extends Fragment {
         recyclerView.setAdapter(guideAdapter);
 
         firestore = FirebaseFirestore.getInstance();
+
+        // טעינת המדריכים מהמסד
         loadGuidesFromFirestore();
 
         return view;
     }
 
+    /**
+     * טוען את רשימת המדריכים מ-Firebase Firestore בעזרת SnapshotListener.
+     * הנתונים מתעדכנים בזמן אמת כאשר יש שינוי במסד.
+     */
     private void loadGuidesFromFirestore() {
         firestore.collection("users")
                 .whereEqualTo("type", "מדריך")
@@ -58,11 +81,16 @@ public class GuideListFragment extends Fragment {
                     allGuideDocs.clear();
                     allGuideDocs.addAll(value.getDocuments());
 
+                    // עדכון האדפטר והגדרת הסינון
                     guideAdapter.setGuideDocuments(allGuideDocs);
                     setupSpinners();
                 });
     }
 
+    /**
+     * מגדיר את ה-Spinners לסינון המדריכים לפי שם, תחום התמחות ופעילות.
+     * שולף ערכים ייחודיים מתוך מסמכי המדריכים.
+     */
     private void setupSpinners() {
         List<String> names = new ArrayList<>();
         List<String> domains = new ArrayList<>();
@@ -97,8 +125,7 @@ public class GuideListFragment extends Fragment {
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
+            public void onNothingSelected(AdapterView<?> parent) {}
         };
 
         spinnerGuideName.setOnItemSelectedListener(filterListener);
@@ -106,12 +133,22 @@ public class GuideListFragment extends Fragment {
         spinnerActivity.setOnItemSelectedListener(filterListener);
     }
 
+    /**
+     * יוצר {@link ArrayAdapter} עבור Spinner מסוים.
+     *
+     * @param items רשימת פריטים להצגה ב-Spinner.
+     * @return Adapter מותאם לשימוש עם Spinner.
+     */
     private ArrayAdapter<String> createAdapter(List<String> items) {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, items);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         return adapter;
     }
 
+    /**
+     * סינון רשימת המדריכים לפי הערכים שנבחרו ב-Spinners (שם, תחום, פעילות).
+     * התוצאה מעודכנת ב-RecyclerView.
+     */
     private void filterGuides() {
         String selectedName = spinnerGuideName.getSelectedItem().toString();
         String selectedDomain = spinnerSpecialization.getSelectedItem().toString();

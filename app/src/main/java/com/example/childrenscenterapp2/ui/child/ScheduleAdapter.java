@@ -16,18 +16,40 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * {@code ScheduleAdapter} – אדפטר מותאם להצגת לוח הזמנים של הילד.
+ * <p>
+ * תפקיד המחלקה:
+ * <ul>
+ *   <li>מציגה את הפעילויות שהילד רשום אליהן ברשימת RecyclerView.</li>
+ *   <li>מציגה את שם הפעילות, תחום הפעילות, הימים בהם היא מתקיימת, וציון ממוצע.</li>
+ *   <li>מאפשרת מחיקת פעילות מהרשימה באמצעות כפתור ייעודי.</li>
+ * </ul>
+ */
 public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.ScheduleViewHolder> {
 
+    /** רשימת הפעילויות בלוח הזמנים */
     private List<ActivityModel> scheduleList;
+
+    /** מאזין ללחיצת מחיקה */
     private OnDeleteClickListener deleteClickListener;
 
-    // טבלת ציונים לפי activityId
+    /** טבלת ציונים ממוצעים לפי מזהה פעילות */
     private Map<String, Double> scores = new HashMap<>();
 
+    /**
+     * ממשק להאזנה למחיקת פעילות מהלוח.
+     */
     public interface OnDeleteClickListener {
         void onDeleteClick(ActivityModel activity);
     }
 
+    /**
+     * בנאי לאדפטר.
+     *
+     * @param scheduleList        רשימת הפעילויות להצגה.
+     * @param deleteClickListener מאזין למחיקה.
+     */
     public ScheduleAdapter(List<ActivityModel> scheduleList, OnDeleteClickListener deleteClickListener) {
         this.scheduleList = scheduleList;
         this.deleteClickListener = deleteClickListener;
@@ -36,13 +58,16 @@ public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.Schedu
     @NonNull
     @Override
     public ScheduleViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_schedule_activity, parent, false);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_schedule_activity, parent, false);
         return new ScheduleViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ScheduleViewHolder holder, int position) {
         ActivityModel activity = scheduleList.get(position);
+
+        // הצגת פרטי הפעילות
         holder.tvName.setText(activity.getName());
         holder.tvDomain.setText("תחום: " + activity.getDomain());
         holder.tvDays.setText("ימים: " + android.text.TextUtils.join(", ", activity.getDays()));
@@ -55,6 +80,7 @@ public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.Schedu
             holder.tvAverageScore.setText("ציון ממוצע: לא זמין");
         }
 
+        // לחיצה על כפתור מחיקה – מעבירה את האירוע למאזין החיצוני
         holder.btnDelete.setOnClickListener(v -> {
             if (deleteClickListener != null) {
                 deleteClickListener.onDeleteClick(activity);
@@ -67,6 +93,9 @@ public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.Schedu
         return scheduleList.size();
     }
 
+    /**
+     * {@code ScheduleViewHolder} – מחזיק התצוגה לכל פריט בלוח הזמנים.
+     */
     public static class ScheduleViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvDomain, tvDays, tvAverageScore;
         ImageButton btnDelete;
@@ -76,17 +105,27 @@ public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.Schedu
             tvName = itemView.findViewById(R.id.tvName);
             tvDomain = itemView.findViewById(R.id.tvDomain);
             tvDays = itemView.findViewById(R.id.tvDays);
-            tvAverageScore = itemView.findViewById(R.id.tvAverageScore); // חדש
+            tvAverageScore = itemView.findViewById(R.id.tvAverageScore);
             btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }
 
+    /**
+     * עדכון רשימת הפעילויות בלוח הזמנים.
+     *
+     * @param newSchedule רשימה חדשה של פעילויות.
+     */
     public void updateData(List<ActivityModel> newSchedule) {
         this.scheduleList = newSchedule;
         notifyDataSetChanged();
     }
 
-    // עדכון ציון לפי מזהה פעילות
+    /**
+     * עדכון ציון ממוצע עבור פעילות מסוימת.
+     *
+     * @param activityId מזהה הפעילות.
+     * @param score      הציון הממוצע לעדכון.
+     */
     public void updateScore(String activityId, double score) {
         scores.put(activityId, score);
         notifyDataSetChanged();

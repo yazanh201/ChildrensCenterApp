@@ -7,16 +7,32 @@ import com.example.childrenscenterapp2.data.local.UserDatabaseHelper;
 import com.example.childrenscenterapp2.data.models.User;
 import com.google.firebase.firestore.*;
 
+/**
+ * UserSyncManager – מחלקה לניהול סנכרון משתמשים בין Firestore למסד הנתונים המקומי (SQLite).
+ * ✅ מאזינה בזמן אמת לכל שינוי בקולקציית "users".
+ * ✅ מסנכרנת אוטומטית את הנתונים עם SQLite ומנהלת הוספה, עדכון ומחיקה.
+ */
 public class UserSyncManager {
-    private final FirebaseFirestore firestore;
-    private final UserDatabaseHelper dbHelper;
-    private ListenerRegistration registration;
 
+    private final FirebaseFirestore firestore;         // חיבור למסד Firestore בענן
+    private final UserDatabaseHelper dbHelper;         // מנהל מסד הנתונים המקומי של המשתמשים
+    private ListenerRegistration registration;         // האזנה בזמן אמת לשינויים ב-Firestore
+
+    /**
+     * קונסטרקטור – אתחול סנכרון משתמשים.
+     *
+     * @param context הקונטקסט עבור יצירת מסד הנתונים המקומי.
+     */
     public UserSyncManager(Context context) {
         firestore = FirebaseFirestore.getInstance();
         dbHelper = new UserDatabaseHelper(context);
     }
 
+    /**
+     * startListening – מתחיל האזנה בזמן אמת לשינויים בקולקציית המשתמשים ב-Firestore.
+     * ✅ מוסיף או מעדכן משתמשים במסד המקומי במקרה של ADDED או MODIFIED.
+     * ✅ מוחק מהמסד המקומי במקרה של REMOVED.
+     */
     public void startListening() {
         registration = firestore.collection("users")
                 .addSnapshotListener((snapshots, error) -> {
@@ -27,6 +43,7 @@ public class UserSyncManager {
 
                     if (snapshots == null || snapshots.isEmpty()) return;
 
+                    // מעבר על כל שינוי במסמכים
                     for (DocumentChange change : snapshots.getDocumentChanges()) {
                         DocumentSnapshot doc = change.getDocument();
                         User user = doc.toObject(User.class);
@@ -65,7 +82,9 @@ public class UserSyncManager {
     }
 
     /**
-     * מדפיס שדות ייחודיים לפי סוג המשתמש
+     * logExtraFields – פונקציה עזר להדפסת מידע נוסף לפי סוג המשתמש.
+     *
+     * @param user אובייקט המשתמש שממנו נשלפים השדות הנוספים.
      */
     private void logExtraFields(User user) {
         switch (user.getType()) {
@@ -78,6 +97,10 @@ public class UserSyncManager {
         }
     }
 
+    /**
+     * stopListening – מפסיק האזנה לשינויים בקולקציית המשתמשים.
+     * ✅ שימושי כאשר יוצאים מהמסך או עוצרים את הסנכרון.
+     */
     public void stopListening() {
         if (registration != null) {
             registration.remove();

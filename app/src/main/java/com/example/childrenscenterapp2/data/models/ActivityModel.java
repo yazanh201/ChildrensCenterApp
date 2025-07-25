@@ -24,14 +24,29 @@ public class ActivityModel {
     private String guideName; // מזהה המדריך המשויך
     private String month; // לדוגמה: 07-2025
 
-    private boolean isRegistrationOpen;
+    private boolean isRegistrationOpen; // האם ההרשמה פתוחה לפעילות
 
-    private transient Map<String, Object> metadata;
+    private transient Map<String, Object> metadata; // נתונים נוספים שלא נשמרים ב-SQLite
 
     // קונסטרקטור ריק נדרש על ידי Firebase
     public ActivityModel() {}
 
-    // קונסטרקטור מלא
+    /**
+     * קונסטרקטור מלא – מיועד לשימוש עם Firestore
+     * @param id מזהה הפעילות
+     * @param name שם הפעילות
+     * @param description תיאור הפעילות
+     * @param domain תחום הפעילות
+     * @param minAge גיל מינימלי
+     * @param maxAge גיל מקסימלי
+     * @param days רשימת ימים
+     * @param maxParticipants מספר משתתפים מקסימלי
+     * @param createdAt תאריך יצירה
+     * @param isOneTime האם הפעילות חד פעמית
+     * @param approved האם הפעילות מאושרת
+     * @param guideName שם המדריך
+     * @param month חודש הפעילות בפורמט MM-YYYY
+     */
     public ActivityModel(String id, String name, String description, String domain,
                          int minAge, int maxAge, List<String> days, int maxParticipants,
                          Timestamp createdAt, boolean isOneTime, boolean approved,
@@ -47,13 +62,23 @@ public class ActivityModel {
         this.createdAt = createdAt;
         this.isOneTime = isOneTime;
         this.approved = approved;
-        this.guideName = guideName;  // ← שורה זו צריכה להתאים לפרמטר
+        this.guideName = guideName;  // ← שם המדריך המשויך לפעילות
         this.month = month;
     }
 
 
 
-    // קונסטרקטור חלקי – לשימוש ב-SQLite כשאין את כל השדות
+    /**
+     * קונסטרקטור חלקי – לשימוש ב-SQLite כשאין את כל השדות
+     * @param id מזהה הפעילות
+     * @param name שם הפעילות
+     * @param description תיאור הפעילות
+     * @param domain תחום הפעילות
+     * @param minAge גיל מינימלי
+     * @param maxAge גיל מקסימלי
+     * @param days רשימת ימים
+     * @param maxParticipants מספר משתתפים מקסימלי
+     */
     public ActivityModel(String id, String name, String description, String domain,
                          int minAge, int maxAge, List<String> days, int maxParticipants) {
         this.id = id;

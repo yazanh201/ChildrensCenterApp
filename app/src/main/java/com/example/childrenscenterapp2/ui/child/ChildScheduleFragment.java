@@ -25,21 +25,51 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * {@code ChildScheduleFragment} – פרגמנט להצגת לוח הזמנים של הילד.
+ * <p>
+ * תפקיד המחלקה:
+ * <ul>
+ *   <li>טעינת כל הפעילויות שהילד רשום אליהן ממסד הנתונים (Firestore).</li>
+ *   <li>הצגת רשימת הפעילויות ב-RecyclerView באמצעות {@link ScheduleAdapter}.</li>
+ *   <li>חישוב והצגת:
+ *       <ul>
+ *         <li>סיכום תחומים (מדע, חברה, יצירה).</li>
+ *         <li>ציון ממוצע לכל פעילות וציון ממוצע כללי.</li>
+ *       </ul>
+ *   </li>
+ *   <li>בדיקה האם הילד רשום לכל התחומים הנדרשים והצגת אזהרה אם חסר תחום.</li>
+ *   <li>אפשרות למחוק פעילות מהרשימה כולל עדכון במסד הנתונים.</li>
+ * </ul>
+ */
 public class ChildScheduleFragment extends Fragment {
 
+    /** RecyclerView להצגת לוח הזמנים */
     private RecyclerView recyclerView;
+
+    /** אדפטר מותאם להצגת פעילויות */
     private ScheduleAdapter adapter;
+
+    /** טקסטים להצגת סיכום וציונים */
     private TextView tvScheduleSummary;
     private TextView tvAverageScore;
 
+    /** גישה ל-Firestore */
     private FirebaseFirestore db;
+
+    /** מזהה הילד המחובר */
     private String currentChildId;
 
+    /** רשימת תחומים הנדרשים */
     private final List<String> requiredDomains = List.of("מדע", "חברה", "יצירה");
 
+    /** תיוג לוגים */
     private static final String TAG = "ChildSchedule";
 
+    /** מפת ציונים ממוצעים לפעילות */
     private Map<String, Double> activityScores = new HashMap<>();
+
+    /** רשימת הפעילויות בלוח הזמנים */
     private List<ActivityModel> activityList = new ArrayList<>();
 
     @Nullable
@@ -55,6 +85,8 @@ public class ChildScheduleFragment extends Fragment {
         tvAverageScore = view.findViewById(R.id.tvAverageScore);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        // אתחול אדפטר עם Listener למחיקת פעילות
         adapter = new ScheduleAdapter(new ArrayList<>(), activity -> {
             deleteRegistrationForActivity(activity);
         });
@@ -64,11 +96,20 @@ public class ChildScheduleFragment extends Fragment {
         currentChildId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         Log.d(TAG, "Current child UID: " + currentChildId);
 
+        // טעינת לוח הזמנים של הילד
         loadChildSchedule();
 
         return view;
     }
 
+    /**
+     * טוען את לוח הזמנים של הילד מה-DB:
+     * <ul>
+     *   <li>שליפת כל ההרשמות של הילד.</li>
+     *   <li>טעינת פרטי הפעילויות והציונים הממוצעים.</li>
+     *   <li>חישוב סיכום תחומים וציונים כלליים.</li>
+     * </ul>
+     */
     private void loadChildSchedule() {
         Log.d(TAG, "Loading schedule for child: " + currentChildId);
 
@@ -102,6 +143,7 @@ public class ChildScheduleFragment extends Fragment {
                                         if (activity != null) {
                                             Log.d(TAG, "Loaded activity: " + activity.getName());
 
+                                            // חישוב הציון הממוצע לפעילות
                                             db.collection("activities")
                                                     .document(activityId)
                                                     .collection("registrations")
@@ -131,7 +173,7 @@ public class ChildScheduleFragment extends Fragment {
                                                             activityList = activities;
                                                             calculateOverallAverageScore(activities);
 
-                                                            // בדיקה האם חסרים תחומים
+                                                            // בדיקה אם חסרים תחומים נדרשים
                                                             List<String> missingDomains = new ArrayList<>();
                                                             for (String required : requiredDomains) {
                                                                 if (!domains.contains(required)) {
@@ -144,7 +186,6 @@ public class ChildScheduleFragment extends Fragment {
                                                                 Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
                                                             }
                                                         }
-
                                                     });
                                         }
                                     }
@@ -160,6 +201,12 @@ public class ChildScheduleFragment extends Fragment {
                 });
     }
 
+    /**
+     * עדכון הסיכום במסך לפי כמות הפעילויות ותחומים.
+     *
+     * @param list    רשימת הפעילויות.
+     * @param domains רשימת התחומים של הפעילויות.
+     */
     private void updateSummary(List<ActivityModel> list, List<String> domains) {
         int total = list.size();
         int countScience = 0, countSocial = 0, countArt = 0;
@@ -186,6 +233,11 @@ public class ChildScheduleFragment extends Fragment {
         tvScheduleSummary.setText(summary);
     }
 
+    /**
+     * חישוב הציון הממוצע הכללי של כל הפעילויות בלוח הזמנים.
+     *
+     * @param activities רשימת הפעילויות הנוכחיות.
+     */
     private void calculateOverallAverageScore(List<ActivityModel> activities) {
         double totalScore = 0;
         int scoredActivities = 0;
@@ -203,6 +255,11 @@ public class ChildScheduleFragment extends Fragment {
         tvAverageScore.setText(result);
     }
 
+    /**
+     * מחיקת רישום פעילות של הילד גם מאוסף המשתמש וגם מאוסף הפעילות.
+     *
+     * @param activity הפעילות למחיקה.
+     */
     private void deleteRegistrationForActivity(ActivityModel activity) {
         db.collection("users")
                 .document(currentChildId)

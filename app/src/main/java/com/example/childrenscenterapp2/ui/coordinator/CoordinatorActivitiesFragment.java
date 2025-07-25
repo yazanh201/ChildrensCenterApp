@@ -15,20 +15,40 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.*;
 
+/**
+ * {@code CoordinatorActivitiesFragment} - פרגמנט המאפשר לרכז לצפות ולנהל את כל הפעילויות.
+ * <p>
+ * תפקיד הפרגמנט:
+ * <ul>
+ *   <li>טעינת כל הפעילויות מ-Firebase Firestore והצגתן ברשימת RecyclerView.</li>
+ *   <li>מיון וסינון פעילויות לפי תחום, חודש ומדריך.</li>
+ *   <li>אפשרות למחוק פעילויות קיימות ולעדכן את רשימת הפעילויות בזמן אמת.</li>
+ *   <li>חישוב והצגת סטטיסטיקות: מספר משתתפים ודירוג ממוצע לכל פעילות.</li>
+ * </ul>
+ */
 public class CoordinatorActivitiesFragment extends Fragment {
 
+    /** רכיב להצגת רשימת הפעילויות */
     private RecyclerView recyclerView;
+
+    /** אדפטר מותאם אישית להצגת פרטי הפעילויות */
     private ActivitiesAdapter adapter;
+
+    /** רשימת פעילויות נטענות מהמסד */
     private List<ActivityModel> activityList = new ArrayList<>();
+
+    /** חיבור למסד הנתונים Firebase Firestore */
     private FirebaseFirestore firestore;
 
+    /** רכיבי סינון */
     private Spinner spinnerDomain, spinnerMonth, spinnerGuide;
 
+    /** כפתורי מיון */
     private Button btnSortByParticipants, btnTop10Activities;
+
+    /** מפות לשמירת סטטיסטיקות לכל פעילות */
     private final Map<String, Integer> participantCountMap = new HashMap<>();
     private final Map<String, Double> averageScoreMap = new HashMap<>();
-
-
 
     @Nullable
     @Override
@@ -36,6 +56,7 @@ public class CoordinatorActivitiesFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_coordinator_activities, container, false);
 
+        // אתחול רכיבי UI
         recyclerView = view.findViewById(R.id.recyclerActivities);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
@@ -47,9 +68,11 @@ public class CoordinatorActivitiesFragment extends Fragment {
 
         firestore = FirebaseFirestore.getInstance();
 
+        // אתחול האדפטר והגדרת פעולות עריכה ומחיקה
         adapter = new ActivitiesAdapter(activityList, new ActivitiesAdapter.OnActivityClickListener() {
             @Override
             public void onEdit(ActivityModel activity) {
+                // מעבר למסך עריכת פעילות
                 EditActivityFragment editFragment = new EditActivityFragment(activity);
                 requireActivity()
                         .getSupportFragmentManager()
@@ -61,6 +84,7 @@ public class CoordinatorActivitiesFragment extends Fragment {
 
             @Override
             public void onDelete(ActivityModel activity) {
+                // דיאלוג אישור מחיקה
                 new androidx.appcompat.app.AlertDialog.Builder(requireContext())
                         .setTitle("אישור מחיקה")
                         .setMessage("האם אתה בטוח שברצונך למחוק את הפעילות \"" + activity.getName() + "\"?")
@@ -72,10 +96,10 @@ public class CoordinatorActivitiesFragment extends Fragment {
 
         recyclerView.setAdapter(adapter);
 
-        // קריאת נתונים מה-DB
+        // טעינת פעילויות מהמסד
         loadActivitiesFromFirestore();
 
-        // כפתור מיון לפי מספר משתתפים
+        // מיון לפי מספר משתתפים בלחיצה על הכפתור
         btnSortByParticipants.setOnClickListener(v -> {
             List<ActivityModel> sortedList = new ArrayList<>(activityList);
             sortedList.sort((a, b) -> {
@@ -86,7 +110,7 @@ public class CoordinatorActivitiesFragment extends Fragment {
             adapter.setData(sortedList);
         });
 
-        // כפתור Top 10 פעילויות בדירוג
+        // מיון והצגת Top 10 פעילויות עם הדירוג הממוצע הגבוה ביותר
         btnTop10Activities.setOnClickListener(v -> {
             List<ActivityModel> sortedList = new ArrayList<>(activityList);
             sortedList.sort((a, b) -> {
@@ -101,7 +125,9 @@ public class CoordinatorActivitiesFragment extends Fragment {
         return view;
     }
 
-
+    /**
+     * טוען את רשימת הפעילויות מ-Firebase Firestore ומעדכן את ה-RecyclerView.
+     */
     private void loadActivitiesFromFirestore() {
         firestore.collection("activities")
                 .get()
@@ -109,18 +135,23 @@ public class CoordinatorActivitiesFragment extends Fragment {
                     activityList.clear();
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         ActivityModel activity = doc.toObject(ActivityModel.class);
-                        activity.setId(doc.getId()); // חשוב
+                        activity.setId(doc.getId()); // שמירת ה-ID מהמסד
                         activityList.add(activity);
                     }
                     adapter.setData(activityList);
-                    setupSpinners();
-                    calculateStatsForActivities(); // מחשב ממוצע ודירוג
+                    setupSpinners();            // הגדרת אפשרויות הסינון
+                    calculateStatsForActivities(); // חישוב סטטיסטיקות עבור כל פעילות
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(requireContext(), "שגיאה בטעינת פעילויות", Toast.LENGTH_SHORT).show();
                 });
     }
 
+    /**
+     * מחיקת פעילות מהמסד Firebase Firestore ועדכון הרשימה.
+     *
+     * @param activity הפעילות למחיקה.
+     */
     private void deleteActivity(ActivityModel activity) {
         firestore.collection("activities")
                 .document(activity.getId())
@@ -134,6 +165,10 @@ public class CoordinatorActivitiesFragment extends Fragment {
                 });
     }
 
+    /**
+     * הגדרת ה-Spinners (תחום, חודש, מדריך) לפי הנתונים הקיימים.
+     * מאפשר סינון רשימת הפעילויות לפי בחירות המשתמש.
+     */
     private void setupSpinners() {
         List<String> domains = new ArrayList<>();
         List<String> months = new ArrayList<>();
@@ -143,6 +178,7 @@ public class CoordinatorActivitiesFragment extends Fragment {
         months.add("חיפוש לפי חודש");
         guides.add("חיפוש לפי מדריך");
 
+        // איסוף ערכים ייחודיים מתוך רשימת הפעילויות
         for (ActivityModel activity : activityList) {
             if (activity.getDomain() != null && !domains.contains(activity.getDomain()))
                 domains.add(activity.getDomain());
@@ -158,6 +194,7 @@ public class CoordinatorActivitiesFragment extends Fragment {
         spinnerMonth.setAdapter(createAdapter(months));
         spinnerGuide.setAdapter(createAdapter(guides));
 
+        // מאזינים לשינוי בחירה ב-Spinners
         AdapterView.OnItemSelectedListener filterListener = new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -165,8 +202,7 @@ public class CoordinatorActivitiesFragment extends Fragment {
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
+            public void onNothingSelected(AdapterView<?> parent) {}
         };
 
         spinnerDomain.setOnItemSelectedListener(filterListener);
@@ -174,6 +210,9 @@ public class CoordinatorActivitiesFragment extends Fragment {
         spinnerGuide.setOnItemSelectedListener(filterListener);
     }
 
+    /**
+     * סינון הפעילויות בהתאם לערכים שנבחרו ב-Spinners.
+     */
     private void filterActivities() {
         String selectedDomain = spinnerDomain.getSelectedItem().toString();
         String selectedMonth = spinnerMonth.getSelectedItem().toString();
@@ -193,12 +232,24 @@ public class CoordinatorActivitiesFragment extends Fragment {
         adapter.setData(filteredList);
     }
 
+    /**
+     * יצירת {@link ArrayAdapter} עבור Spinner מסוים.
+     *
+     * @param items רשימת פריטים להצגה.
+     * @return Adapter מותאם.
+     */
     private ArrayAdapter<String> createAdapter(List<String> items) {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, items);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         return adapter;
     }
 
+    /**
+     * חישוב סטטיסטיקות עבור כל פעילות:
+     * - מספר המשתתפים.
+     * - הדירוג הממוצע לפי משובים.
+     * מעדכן את הנתונים באדפטר.
+     */
     private void calculateStatsForActivities() {
         for (ActivityModel activity : activityList) {
             String activityId = activity.getId();
@@ -224,14 +275,13 @@ public class CoordinatorActivitiesFragment extends Fragment {
 
                         double average = scoredCount > 0 ? totalScore / scoredCount : 0.0;
 
-                        // שמירה במפות
+                        // שמירת הנתונים במפות הסטטיסטיקות
                         participantCountMap.put(activityId, count);
                         averageScoreMap.put(activityId, average);
 
-                        // הצגה בעזרת מתודה קיימת באדפטר
+                        // עדכון באדפטר להצגה ב-UI
                         adapter.updateStatsForActivity(activityId, count, average);
                     });
         }
     }
-
 }

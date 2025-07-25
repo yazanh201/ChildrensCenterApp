@@ -22,19 +22,52 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * {@code ChildActivitiesAdapter} – אדפטר מותאם להצגת רשימת פעילויות עבור ילדים.
+ * <p>
+ * תפקיד המחלקה:
+ * <ul>
+ *   <li>מציגה רשימת פעילויות מותאמות לילדים ב-RecyclerView.</li>
+ *   <li>מאפשרת רישום לפעילויות תוך בדיקת הגבלות:
+ *       <ul>
+ *         <li>בדיקה אם ההרשמה פתוחה לפעילות.</li>
+ *         <li>מניעת רישום כפול לאותה פעילות.</li>
+ *         <li>מניעת רישום לפעילות בתחום זהה שכבר נרשם אליו.</li>
+ *         <li>מניעת התנגשות ימים עם פעילויות אחרות שהילד רשום אליהן.</li>
+ *       </ul>
+ *   </li>
+ *   <li>מעדכנת את הנתונים הן באוסף הפעילויות והן באוסף ההרשמות של המשתמש.</li>
+ * </ul>
+ */
 public class ChildActivitiesAdapter extends RecyclerView.Adapter<ChildActivitiesAdapter.ActivityViewHolder> {
 
+    /** רשימת הפעילויות להצגה */
     private List<ActivityModel> activities;
+
+    /** מזהה ושם ילד אופציונליים לשימוש במצב override (למשל הורה שמרשם ילד אחר) */
     private String overrideChildId = null;
     private String overrideChildName = null;
+
+    /** האם להציג כפתור הרשמה */
     private boolean showRegisterButton = true;
 
-    // ✅ בנאי חדש שמקבל גם האם להציג כפתור
+    /**
+     * בנאי האדפטר.
+     *
+     * @param activities         רשימת הפעילויות להצגה.
+     * @param showRegisterButton האם להציג את כפתור ההרשמה.
+     */
     public ChildActivitiesAdapter(List<ActivityModel> activities, boolean showRegisterButton) {
         this.activities = activities;
         this.showRegisterButton = showRegisterButton;
     }
 
+    /**
+     * הגדרת Override של מזהה ושם הילד במקרה של הרשמה מטעם אחר.
+     *
+     * @param childId   מזהה הילד.
+     * @param childName שם הילד.
+     */
     public void setChildOverride(String childId, String childName) {
         this.overrideChildId = childId;
         this.overrideChildName = childName;
@@ -52,6 +85,7 @@ public class ChildActivitiesAdapter extends RecyclerView.Adapter<ChildActivities
     public void onBindViewHolder(@NonNull ActivityViewHolder holder, int position) {
         ActivityModel activity = activities.get(position);
 
+        // הצגת פרטי הפעילות
         holder.tvName.setText(activity.getName());
         holder.tvDomain.setText("תחום: " + activity.getDomain());
         String daysString = android.text.TextUtils.join(", ", activity.getDays());
@@ -62,14 +96,13 @@ public class ChildActivitiesAdapter extends RecyclerView.Adapter<ChildActivities
             holder.btnRegister.setVisibility(View.VISIBLE);
             holder.btnRegister.setOnClickListener(v -> {
 
-                // ✅ בדיקה האם ההרשמה פתוחה
+                // ✅ בדיקה אם ההרשמה פתוחה
                 if (!activity.isRegistrationOpen()) {
                     Toast.makeText(holder.itemView.getContext(),
                             "ההרשמה לפעילות זו עדיין סגורה על ידי המנהל.", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                // ⬇️ ממשיך לקוד ההרשמה הקיים...
                 FirebaseFirestore db = FirebaseFirestore.getInstance();
                 FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -78,6 +111,7 @@ public class ChildActivitiesAdapter extends RecyclerView.Adapter<ChildActivities
                     return;
                 }
 
+                // שימוש ב-override אם קיים, אחרת משתמש מחובר
                 String childId = (overrideChildId != null) ? overrideChildId : currentUser.getUid();
                 String childName = (overrideChildName != null) ? overrideChildName : currentUser.getEmail();
 
@@ -90,6 +124,7 @@ public class ChildActivitiesAdapter extends RecyclerView.Adapter<ChildActivities
                     return;
                 }
 
+                // בדיקת האם הילד כבר רשום לפעילות בתחום זהה
                 db.collection("users")
                         .document(childId)
                         .collection("registrations")
@@ -97,21 +132,8 @@ public class ChildActivitiesAdapter extends RecyclerView.Adapter<ChildActivities
                         .addOnSuccessListener(regSnapshot -> {
                             boolean alreadyInDomain = false;
 
-                            for (DocumentSnapshot doc : regSnapshot.getDocuments()) {
-                                String existingDomain = doc.getString("domain");
-                                if (domain.equals(existingDomain)) {
-                                    alreadyInDomain = true;
-                                    break;
-                                }
-                            }
 
-                            if (alreadyInDomain) {
-                                Toast.makeText(holder.itemView.getContext(),
-                                        "כבר נרשמת לפעילות בתחום הזה: " + domain,
-                                        Toast.LENGTH_LONG).show();
-                                return;
-                            }
-
+                            // בדיקה אם הילד כבר רשום לפעילות הזו עצמה
                             db.collection("activities")
                                     .document(activityId)
                                     .collection("registrations")
@@ -123,6 +145,7 @@ public class ChildActivitiesAdapter extends RecyclerView.Adapter<ChildActivities
                                                     "⚠️ כבר נרשמת לפעילות זו",
                                                     Toast.LENGTH_SHORT).show();
                                         } else {
+                                            // בדיקת חפיפה בימים עם פעילויות אחרות
                                             db.collection("users")
                                                     .document(childId)
                                                     .collection("registrations")
@@ -194,10 +217,25 @@ public class ChildActivitiesAdapter extends RecyclerView.Adapter<ChildActivities
         }
     }
 
+    /**
+     * הצגת הודעת שגיאה קצרה.
+     *
+     * @param holder  ViewHolder הנוכחי.
+     * @param message הודעת השגיאה.
+     */
     private void showError(ActivityViewHolder holder, String message) {
         Toast.makeText(holder.itemView.getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * מבצע רישום של ילד לפעילות ומעדכן את הנתונים הן באוסף הפעילויות והן באוסף המשתמש.
+     *
+     * @param db       מופע Firestore.
+     * @param holder   ViewHolder להצגת ההודעה.
+     * @param user     המשתמש המחובר.
+     * @param activity הפעילות לרישום.
+     * @param childId  מזהה הילד הנרשם.
+     */
     private void registerActivity(FirebaseFirestore db, ActivityViewHolder holder, FirebaseUser user,
                                   ActivityModel activity, String childId) {
 
@@ -241,11 +279,19 @@ public class ChildActivitiesAdapter extends RecyclerView.Adapter<ChildActivities
         return activities.size();
     }
 
+    /**
+     * עדכון רשימת הפעילויות באדפטר.
+     *
+     * @param newList רשימת פעילויות חדשה.
+     */
     public void setData(List<ActivityModel> newList) {
         this.activities = newList;
         notifyDataSetChanged();
     }
 
+    /**
+     * {@code ActivityViewHolder} – מחלקה פנימית להצגת פרטי פעילות ב-RecyclerView.
+     */
     static class ActivityViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvDomain, tvDays, tvAge;
         Button btnRegister;

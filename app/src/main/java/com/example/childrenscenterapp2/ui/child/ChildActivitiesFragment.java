@@ -29,18 +29,44 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * {@code ChildActivitiesFragment} – פרגמנט להצגת רשימת פעילויות עבור ילדים.
+ * <p>
+ * תפקיד המחלקה:
+ * <ul>
+ *   <li>טעינת כל הפעילויות ממסד הנתונים (Firestore).</li>
+ *   <li>הצגתן ברשימה (RecyclerView) עם אפשרות חיפוש וסינון לפי:
+ *       <ul>
+ *         <li>תחום פעילות</li>
+ *         <li>יום פעילות</li>
+ *         <li>גיל הילד</li>
+ *       </ul>
+ *   </li>
+ *   <li>תמיכה בצפייה כילד מחובר או כהורה שמנהל ילדים.</li>
+ *   <li>שילוב {@link ChildActivitiesAdapter} להצגת הפעילויות ורישום אליהן.</li>
+ * </ul>
+ */
 public class ChildActivitiesFragment extends Fragment {
 
+    /** רכיבי UI לסינון */
     private Spinner spinnerDomain, spinnerDay;
     private EditText etAge;
     private Button btnSearch;
+
+    /** RecyclerView להצגת הפעילויות */
     private RecyclerView recyclerViewActivities;
+
+    /** אדפטר מותאם אישית לפעילויות */
     private ChildActivitiesAdapter adapter;
+
+    /** רשימת כל הפעילויות ממסד הנתונים */
     private List<ActivityModel> allActivities = new ArrayList<>();
 
+    /** חיבור למסד הנתונים */
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final CollectionReference activitiesRef = db.collection("activities");
 
+    /** מזהה ושם הילד (משמש גם עבור מצב הורה) */
     private String childUid = null;
     private String childName = null;
 
@@ -60,7 +86,7 @@ public class ChildActivitiesFragment extends Fragment {
 
         recyclerViewActivities.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        // Spinner תחום
+        // Spinner תחומים
         ArrayAdapter<CharSequence> domainAdapter = ArrayAdapter.createFromResource(
                 getContext(),
                 R.array.activity_domains,
@@ -78,7 +104,7 @@ public class ChildActivitiesFragment extends Fragment {
         dayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerDay.setAdapter(dayAdapter);
 
-        // קבלת UID של ילד אם עבר ב־Bundle
+        // קבלת UID של ילד אם עבר דרך Bundle (מצב הורה)
         if (getArguments() != null && getArguments().containsKey("childUid")) {
             childUid = getArguments().getString("childUid");
 
@@ -90,7 +116,7 @@ public class ChildActivitiesFragment extends Fragment {
                             String nameFromDb = snapshot.getString("name");
                             if (nameFromDb != null && !nameFromDb.isEmpty()) {
                                 childName = nameFromDb;
-                                setupAdapter(); // ערכים מוכנים
+                                setupAdapter(); // ערכים מוכנים – ניתן להגדיר את האדפטר
                             } else {
                                 Toast.makeText(getContext(), "שם הילד חסר במסד הנתונים", Toast.LENGTH_SHORT).show();
                             }
@@ -102,29 +128,31 @@ public class ChildActivitiesFragment extends Fragment {
                         Toast.makeText(getContext(), "שגיאה בטעינת שם הילד", Toast.LENGTH_SHORT).show();
                     });
         } else {
-            // אם אין childUid – נניח שזה הילד המחובר
+            // אם אין childUid – נשתמש במשתמש המחובר (מצב ילד)
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             if (user != null) {
                 childUid = user.getUid();
-                childName = user.getEmail(); // או כל שם שיופיע
-                setupAdapter(); // בטוח לקרוא כאן
+                childName = user.getEmail(); // ברירת מחדל לשם
+                setupAdapter();
             } else {
                 Toast.makeText(getContext(), "⚠️ אין משתמש מחובר", Toast.LENGTH_SHORT).show();
             }
         }
 
+        // לחיצה על כפתור החיפוש מפעילה סינון
         btnSearch.setOnClickListener(v -> applyFilters());
 
         return view;
     }
 
+    /**
+     * אתחול האדפטר וקישורו ל-RecyclerView.
+     * קובע האם להציג כפתור הרשמה בהתאם למצב (הורה/ילד).
+     */
     private void setupAdapter() {
-        // נבדוק אם זה צפייה כהורה או כילד
         boolean isParentView = getArguments() != null && getArguments().getBoolean("isParentView", false);
-        adapter = new ChildActivitiesAdapter(new ArrayList<ActivityModel>(), !isParentView); // רק אם זה *לא* הורה – הכפתור יוצג
+        adapter = new ChildActivitiesAdapter(new ArrayList<ActivityModel>(), !isParentView); // כפתור רק אם זה *לא* הורה
 
-
-        // הגנה מפני ערכים חסרים
         if (childUid != null && childName != null) {
             adapter.setChildOverride(childUid, childName);
         }
@@ -133,7 +161,9 @@ public class ChildActivitiesFragment extends Fragment {
         loadActivities();
     }
 
-
+    /**
+     * טעינת כל הפעילויות מ-Firestore והגדרת ערך {@code isRegistrationOpen}.
+     */
     private void loadActivities() {
         activitiesRef.get().addOnSuccessListener(querySnapshot -> {
             allActivities.clear();
@@ -141,12 +171,12 @@ public class ChildActivitiesFragment extends Fragment {
                 ActivityModel activity = doc.toObject(ActivityModel.class);
                 activity.setId(doc.getId());
 
-                // ✅ שליפת ערך isRegistrationOpen ישירות מהמסד
+                // טעינת isRegistrationOpen אם קיים במסד
                 Boolean isOpen = doc.getBoolean("isRegistrationOpen");
                 if (isOpen != null) {
                     activity.setIsRegistrationOpen(isOpen);
                 } else {
-                    activity.setIsRegistrationOpen(false); // ברירת מחדל אם לא קיים
+                    activity.setIsRegistrationOpen(false);
                 }
 
                 allActivities.add(activity);
@@ -156,7 +186,9 @@ public class ChildActivitiesFragment extends Fragment {
         });
     }
 
-
+    /**
+     * סינון הפעילויות לפי הערכים שנבחרו ב-Spinners והגיל שהוזן.
+     */
     private void applyFilters() {
         String selectedDomain = spinnerDomain.getSelectedItem().toString();
         String selectedDay = spinnerDay.getSelectedItem().toString();

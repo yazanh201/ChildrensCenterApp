@@ -3,5 +3,6 @@
     <item
         android:id="@+id/action_logout"
         android:title="התנתקות"
+
         android:showAsAction="never" />
 </menu>

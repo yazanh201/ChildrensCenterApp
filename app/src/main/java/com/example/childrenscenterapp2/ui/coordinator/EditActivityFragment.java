@@ -20,25 +20,42 @@ import java.util.List;
 import com.example.childrenscenterapp2.data.local.ActivityDatabaseHelper;
 import android.util.Log;
 
-
 /**
- * Fragment לעריכת פעילות קיימת
+ * {@code EditActivityFragment} – פרגמנט המאפשר לערוך פעילות קיימת.
+ * <p>
+ * תפקיד המחלקה:
+ * <ul>
+ *   <li>טעינת נתוני פעילות קיימת והצגתם בטופס עריכה.</li>
+ *   <li>עדכון פרטי פעילות ב-Firebase Firestore.</li>
+ *   <li>סנכרון שינויים למסד הנתונים המקומי (SQLite).</li>
+ *   <li>ניהול קשר בין פעילות לבין מדריך נבחר (כולל עדכון מדריך חדש/ישן).</li>
+ * </ul>
  */
 public class EditActivityFragment extends Fragment {
 
+    /** רכיבי טופס עריכה */
     private EditText etName, etDescription, etMinAge, etMaxAge, etDays, etMaxParticipants;
     private Spinner spinnerDomain, spinnerGuide;
     private Switch switchOneTime;
     private Button btnSave;
 
+    /** הפעילות שנבחרה לעריכה */
     private ActivityModel activityToEdit;
+
+    /** חיבור ל-Firebase Firestore */
     private FirebaseFirestore firestore;
 
+    /** רשימות נתוני מדריכים */
     private List<String> guideIds = new ArrayList<>();
     private List<String> guideNames = new ArrayList<>();
     private ArrayAdapter<String> guideAdapter;
     private String selectedGuideName;
 
+    /**
+     * בנאי המקבל פעילות לעריכה.
+     *
+     * @param activity אובייקט פעילות לעריכה.
+     */
     public EditActivityFragment(ActivityModel activity) {
         this.activityToEdit = activity;
     }
@@ -64,24 +81,25 @@ public class EditActivityFragment extends Fragment {
 
         firestore = FirebaseFirestore.getInstance();
 
-        // הגדרת Spinner של התחומים
+        // Spinner תחומים
         ArrayAdapter<String> domainAdapter = new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_spinner_item,
                 new String[]{"מדע", "חברה", "יצירה"});
         domainAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerDomain.setAdapter(domainAdapter);
 
-        // הגדרת Spinner של מדריכים
+        // Spinner מדריכים
         guideAdapter = new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_spinner_item, guideNames);
         guideAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerGuide.setAdapter(guideAdapter);
 
+        // בחירת מדריך
         spinnerGuide.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (position < guideNames.size()) {
-                    selectedGuideName = guideNames.get(position); // ✨ שומר את שם המדריך
+                    selectedGuideName = guideNames.get(position); // ✨ שומר את שם המדריך שנבחר
                 }
             }
 
@@ -91,21 +109,21 @@ public class EditActivityFragment extends Fragment {
             }
         });
 
-
-        // מילוי שדות עם הנתונים הקיימים
+        // מילוי השדות בנתונים הקיימים של הפעילות
         fillFieldsWithData();
 
+        // שינוי כפתור לשמירה עם טקסט עדכון
         btnSave.setText("💾 עדכן פעילות");
         btnSave.setOnClickListener(v -> updateActivity());
 
-        // טען את כל המדריכים עם תחום לצורך תצוגה
+        // טעינת רשימת מדריכים לצורך בחירה
         loadGuidesFromAllDomains();
 
         return view;
     }
 
     /**
-     * מילוי שדות הטופס עם נתוני הפעילות
+     * מילוי שדות הטופס עם הנתונים של הפעילות שנבחרה לעריכה.
      */
     private void fillFieldsWithData() {
         etName.setText(activityToEdit.getName());
@@ -117,7 +135,7 @@ public class EditActivityFragment extends Fragment {
         switchOneTime.setChecked(activityToEdit.isOneTime());
         selectedGuideName = activityToEdit.getGuideName();
 
-        // הצגת התחום שנבחר מראש
+        // בחירת התחום הנוכחי ב-Spinner
         String currentDomain = activityToEdit.getDomain();
         ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinnerDomain.getAdapter();
         if (adapter != null) {
@@ -127,7 +145,7 @@ public class EditActivityFragment extends Fragment {
     }
 
     /**
-     * טוען את כל המדריכים מה-DB עם התחום ליד השם
+     * טוען את כל המדריכים מ-Firebase ומציג אותם ב-Spinner עם תחום ההתמחות ליד השם.
      */
     private void loadGuidesFromAllDomains() {
         firestore.collection("users")
@@ -151,7 +169,7 @@ public class EditActivityFragment extends Fragment {
 
                     guideAdapter.notifyDataSetChanged();
 
-                    // ❗️הצגת המדריך הנבחר בטופס
+                    // ❗️ בחירת המדריך הנוכחי בטופס אם קיים
                     if (selectedGuideName != null) {
                         int pos = guideNames.indexOf(selectedGuideName);
                         if (pos >= 0) {
@@ -163,9 +181,8 @@ public class EditActivityFragment extends Fragment {
                         Toast.makeText(getContext(), "❌ שגיאה בטעינת מדריכים", Toast.LENGTH_SHORT).show());
     }
 
-
     /**
-     * עדכון הנתונים בפיירבייס
+     * עדכון הפעילות ב-Firebase Firestore וב-SQLite כולל טיפול בשינוי מדריך.
      */
     private void updateActivity() {
         String name = etName.getText().toString().trim();
@@ -176,16 +193,18 @@ public class EditActivityFragment extends Fragment {
             return;
         }
 
+        // המרת הימים לרשימה
         List<String> daysList = new ArrayList<>();
         for (String day : etDays.getText().toString().split(",")) {
             daysList.add(day.trim());
         }
 
         String newGuideName = selectedGuideName;
-        String oldGuideName = activityToEdit.getGuideName(); // נניח שזה נשמר באובייקט הפעילות
+        String oldGuideName = activityToEdit.getGuideName(); // שם המדריך הישן לפני עדכון
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+        // עדכון נתוני הפעילות ב-Firebase
         db.collection("activities")
                 .document(activityToEdit.getId())
                 .update(
@@ -202,7 +221,7 @@ public class EditActivityFragment extends Fragment {
                 .addOnSuccessListener(unused -> {
                     Toast.makeText(getContext(), "✔️ פעילות עודכנה בהצלחה", Toast.LENGTH_SHORT).show();
 
-                    // ✅ עדכון גם ב-SQLite
+                    // ✅ עדכון ב-SQLite מקומית
                     ActivityModel updatedActivity = new ActivityModel(
                             activityToEdit.getId(),
                             name,
@@ -225,9 +244,7 @@ public class EditActivityFragment extends Fragment {
                         Log.e("SQLiteSync", "❌ עדכון הפעילות נכשל במסד המקומי (SQLite)");
                     }
 
-
-
-                    // אם המדריך השתנה – נעדכן את המדריך הישן והחדש
+                    // ✅ עדכון קשר בין מדריך ישן למדריך חדש
                     if (!TextUtils.isEmpty(newGuideName) && !TextUtils.isEmpty(oldGuideName)
                             && !newGuideName.equals(oldGuideName)) {
 
@@ -266,5 +283,4 @@ public class EditActivityFragment extends Fragment {
                 .addOnFailureListener(e ->
                         Toast.makeText(getContext(), "❌ שגיאה בעדכון פעילות", Toast.LENGTH_SHORT).show());
     }
-
 }

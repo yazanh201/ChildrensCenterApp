@@ -14,19 +14,43 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * ניהול מסד נתונים מקומי של הרשמות
+ * {@code RegistrationDatabaseHelper} – מחלקת עזר לניהול מסד נתונים מקומי (SQLite) של הרשמות.
+ * <p>
+ * תפקיד המחלקה:
+ * <ul>
+ *   <li>יצירת טבלת הרשמות מקומית.</li>
+ *   <li>ניהול פעולות CRUD על הרשמות (הוספה, עדכון, מחיקה).</li>
+ *   <li>סנכרון נתוני הרשמות מ-Firebase למסד המקומי.</li>
+ * </ul>
  */
 public class RegistrationDatabaseHelper extends SQLiteOpenHelper {
 
+    /** שם מסד הנתונים */
     private static final String DATABASE_NAME = "registrations.db";
+
+    /** גרסת מסד הנתונים */
     private static final int DATABASE_VERSION = 1;
+
+    /** שם טבלת ההרשמות */
     private static final String TABLE_REGISTRATIONS = "registrations";
+
+    /** תיוג ללוגים */
     private static final String TAG = "RegistrationDB";
 
+    /**
+     * בנאי המחלקה – יוצר חיבור למסד הנתונים המקומי.
+     *
+     * @param context הקונטקסט של האפליקציה.
+     */
     public RegistrationDatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+    /**
+     * יצירת טבלת ההרשמות בבסיס הנתונים המקומי.
+     *
+     * @param db מופע מסד הנתונים.
+     */
     @Override
     public void onCreate(SQLiteDatabase db) {
         String createTable = "CREATE TABLE " + TABLE_REGISTRATIONS + " (" +
@@ -43,6 +67,13 @@ public class RegistrationDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(createTable);
     }
 
+    /**
+     * עדכון מבנה הטבלה במקרה של שינוי גרסת מסד הנתונים.
+     *
+     * @param db         מופע מסד הנתונים.
+     * @param oldVersion גרסה ישנה.
+     * @param newVersion גרסה חדשה.
+     */
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_REGISTRATIONS);
@@ -50,7 +81,10 @@ public class RegistrationDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * המרה של אובייקט Timestamp למחרוזת תאריך קריאה
+     * המרה של {@link Timestamp} או מחרוזת למחרוזת תאריך קריאה.
+     *
+     * @param ts אובייקט תאריך (Timestamp או String).
+     * @return מחרוזת תאריך בפורמט {@code yyyy-MM-dd HH:mm:ss}.
      */
     private String formatTimestamp(Object ts) {
         if (ts instanceof Timestamp) {
@@ -64,7 +98,9 @@ public class RegistrationDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * מוסיף או מעדכן הרשמה לפי id
+     * הוספה או עדכון של הרשמה במסד הנתונים המקומי.
+     *
+     * @param model אובייקט הרשמה לשמירה.
      */
     public void insertOrUpdateRegistration(RegistrationModel model) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -78,7 +114,7 @@ public class RegistrationDatabaseHelper extends SQLiteOpenHelper {
         values.put("feedbackComment", model.getFeedbackComment());
         values.put("feedbackScore", model.getFeedbackScore());
 
-        // ✅ המרה בטוחה של registeredAt
+        // המרת registeredAt לפורמט קריא ושמירה
         String formattedDate = formatTimestamp(model.getRegisteredAt());
         values.put("registeredAt", formattedDate);
 
@@ -93,7 +129,9 @@ public class RegistrationDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * מחיקת הרשמה לפי מזהה
+     * מחיקת הרשמה ממסד הנתונים לפי מזהה ייחודי.
+     *
+     * @param id מזהה הרשמה למחיקה.
      */
     public void deleteRegistrationById(String id) {
         SQLiteDatabase db = this.getWritableDatabase();

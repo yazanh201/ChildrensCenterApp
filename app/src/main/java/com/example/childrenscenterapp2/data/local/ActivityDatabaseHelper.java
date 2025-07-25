@@ -10,31 +10,50 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * {@code ActivityDatabaseHelper} – מחלקת עזר לניהול מסד נתונים מקומי (SQLite) עבור פעילויות.
+ * <p>
+ * תפקיד המחלקה:
+ * <ul>
+ *   <li>יצירה וניהול של טבלת פעילויות מקומית.</li>
+ *   <li>ביצוע פעולות CRUD (יצירה, קריאה, עדכון ומחיקה) על פעילויות.</li>
+ *   <li>סנכרון נתונים בין מסד הנתונים המקומי לבין Firebase Firestore.</li>
+ * </ul>
+ */
 public class ActivityDatabaseHelper extends SQLiteOpenHelper {
 
-    // פרטי בסיס נתונים
+    /** שם בסיס הנתונים */
     private static final String DATABASE_NAME = "activities.db";
+
+    /** גרסת בסיס הנתונים */
     private static final int DATABASE_VERSION = 1;
 
-    // טבלת פעילויות
+    /** שם הטבלה */
     private static final String TABLE_NAME = "activities";
 
-    // עמודות
+    /** שמות העמודות בטבלה */
     private static final String COL_ID = "id";
     private static final String COL_NAME = "name";
     private static final String COL_DESCRIPTION = "description";
     private static final String COL_DOMAIN = "domain";
     private static final String COL_MIN_AGE = "min_age";
     private static final String COL_MAX_AGE = "max_age";
-    private static final String COL_DAYS = "days"; // מחרוזת מופרדת בפסיקים
+    private static final String COL_DAYS = "days"; // נשמר כמחרוזת מופרדת בפסיקים
     private static final String COL_MAX_PARTICIPANTS = "max_participants";
 
+    /**
+     * בנאי המחלקה – יוצר חיבור למסד הנתונים.
+     *
+     * @param context ההקשר (Context) של האפליקציה.
+     */
     public ActivityDatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     /**
-     * יצירת טבלה בבסיס הנתונים
+     * יצירת טבלה בבסיס הנתונים המקומי בפעם הראשונה.
+     *
+     * @param db מופע מסד הנתונים.
      */
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -51,7 +70,11 @@ public class ActivityDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * עדכון מבנה טבלה אם יש גרסה חדשה
+     * טיפול בעדכון מבנה הטבלה בעת שינוי גרסה.
+     *
+     * @param db         מופע מסד הנתונים.
+     * @param oldVersion גרסה ישנה.
+     * @param newVersion גרסה חדשה.
      */
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -60,7 +83,9 @@ public class ActivityDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * הוספת פעילות חדשה למסד המקומי
+     * הוספת פעילות חדשה למסד הנתונים המקומי או החלפתה אם כבר קיימת.
+     *
+     * @param activity אובייקט פעילות להוספה.
      */
     public void insertActivity(ActivityModel activity) {
         SQLiteDatabase db = getWritableDatabase();
@@ -79,7 +104,9 @@ public class ActivityDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * קבלת כל הפעילויות מה-SQLite
+     * שליפת כל הפעילויות מהמסד המקומי.
+     *
+     * @return רשימת פעילויות.
      */
     public List<ActivityModel> getAllActivities() {
         List<ActivityModel> list = new ArrayList<>();
@@ -111,7 +138,7 @@ public class ActivityDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * מחיקת כל הפעילויות (לצורך סנכרון מחדש)
+     * מחיקת כל הפעילויות מהמסד המקומי (לצורך סנכרון מחדש).
      */
     public void clearActivities() {
         SQLiteDatabase db = getWritableDatabase();
@@ -120,15 +147,18 @@ public class ActivityDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * מוסיף או מעדכן פעילות במסד הנתונים לפי מזהה
+     * הוספה או עדכון פעילות לפי מזהה.
+     *
+     * @param activity פעילות להוספה או עדכון.
      */
     public void insertOrUpdateActivity(ActivityModel activity) {
-        insertActivity(activity); // משתמש באותו קוד של insert עם CONFLICT_REPLACE
+        insertActivity(activity); // שימוש ב-CONFLICT_REPLACE כדי לעדכן אם קיים.
     }
 
-
     /**
-     * מוחק פעילות לפי מזהה
+     * מחיקת פעילות לפי מזהה.
+     *
+     * @param id מזהה הפעילות למחיקה.
      */
     public void deleteActivityById(String id) {
         SQLiteDatabase db = getWritableDatabase();
@@ -137,7 +167,10 @@ public class ActivityDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * עדכון פעילות קיימת במסד הנתונים לפי מזהה
+     * עדכון פעילות קיימת לפי מזהה.
+     *
+     * @param activity פעילות לעדכון.
+     * @return {@code true} אם העדכון הצליח, אחרת {@code false}.
      */
     public boolean updateActivity(ActivityModel activity) {
         SQLiteDatabase db = getWritableDatabase();
@@ -152,9 +185,6 @@ public class ActivityDatabaseHelper extends SQLiteOpenHelper {
 
         int rowsAffected = db.update(TABLE_NAME, values, COL_ID + " = ?", new String[]{activity.getId()});
         db.close();
-        return rowsAffected > 0; // ✅ מחזיר true אם העדכון הצליח
+        return rowsAffected > 0; // ✅ מחזיר true אם לפחות שורה אחת עודכנה.
     }
-
-
-
 }

@@ -55,8 +55,8 @@ public class FeedbackAdapter extends RecyclerView.Adapter<FeedbackAdapter.Feedba
 
         // עדכון התצוגה בשורת הביקורת
         holder.tvChildName.setText(" ילד: " + childName);
-        holder.tvGuideFeedback.setText("📝 " + guideComment + "\n⭐ ציון: " + guideScore + "/10");
-        holder.tvParentFeedback.setText("📝 " + parentComment + "\n⭐ ציון: " + parentScore + "/10");
+        holder.tvGuideFeedback.setText(" " + guideComment + "\n ציון: " + guideScore + "/10");
+        holder.tvParentFeedback.setText(" " + parentComment + "\n ציון: " + parentScore + "/10");
     }
 
     // מחזיר את מספר הביקורות ברשימה

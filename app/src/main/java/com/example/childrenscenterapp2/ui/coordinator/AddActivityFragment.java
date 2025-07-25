@@ -23,19 +23,33 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.time.LocalDate;
 import java.util.*;
 
+/**
+ * {@code AddActivityFragment} - פרגמנט להוספת פעילות חדשה למערכת.
+ * <p>
+ * תפקיד הפרגמנט:
+ * <ul>
+ *   <li>קבלת פרטי פעילות מהמשתמש דרך טופס UI.</li>
+ *   <li>שמירת הפעילות גם ב-Firebase Firestore וגם במסד הנתונים המקומי (SQLite).</li>
+ *   <li>שיוך הפעילות למדריך נבחר.</li>
+ *   <li>טעינת רשימת מדריכים מכל התחומים והצגתם ב-Spinner.</li>
+ * </ul>
+ */
 public class AddActivityFragment extends Fragment {
 
+    /** רכיבי טופס להזנת פרטי הפעילות */
     private EditText etName, etDescription, etMinAge, etMaxAge, etDays, etMaxParticipants;
     private Spinner spinnerDomain, spinnerGuide;
     private Switch switchOneTime;
     private Button btnSave;
 
+    /** חיבור למסדי נתונים */
     private FirebaseFirestore firestore;
     private ActivityDatabaseHelper localDb;
 
+    /** רשימות ומפות לשמירת נתוני המדריכים */
     private List<String> guideIds = new ArrayList<>();
     private List<String> guideNames = new ArrayList<>();
-    private Map<String, String> guideNameToIdMap = new HashMap<>(); // ✅ מיפוי שם ל־uid
+    private Map<String, String> guideNameToIdMap = new HashMap<>(); // ✅ מיפוי בין שם ל-UID
     private ArrayAdapter<String> guideAdapter;
     private String selectedGuideName = null;
 
@@ -60,19 +74,20 @@ public class AddActivityFragment extends Fragment {
         firestore = FirebaseFirestore.getInstance();
         localDb = new ActivityDatabaseHelper(requireContext());
 
-        // Spinner התחומים
+        // Spinner של תחומי פעילות
         ArrayAdapter<String> domainAdapter = new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_spinner_item,
                 new String[]{"מדע", "חברה", "יצירה"});
         domainAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerDomain.setAdapter(domainAdapter);
 
-        // Spinner מדריכים
+        // Spinner של מדריכים
         guideAdapter = new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_spinner_item, guideNames);
         guideAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerGuide.setAdapter(guideAdapter);
 
+        // בחירת מדריך מה-Spinner
         spinnerGuide.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -89,6 +104,7 @@ public class AddActivityFragment extends Fragment {
             }
         });
 
+        // בעת בחירת תחום - טען את כל המדריכים (ניתן לשנות לסינון לפי תחום)
         spinnerDomain.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -99,13 +115,18 @@ public class AddActivityFragment extends Fragment {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
+        // כפתור שמירה
         btnSave.setOnClickListener(v -> saveActivity());
 
+        // טעינת מדריכים מהמסד
         loadGuidesFromAllDomains();
 
         return view;
     }
 
+    /**
+     * טוען את רשימת המדריכים מכל התחומים מתוך Firestore ומעדכן את ה-Spinner.
+     */
     private void loadGuidesFromAllDomains() {
         firestore.collection("users")
                 .whereEqualTo("type", "מדריך")
@@ -124,7 +145,7 @@ public class AddActivityFragment extends Fragment {
                             String displayName = name + " (" + specialization + ")";
                             guideIds.add(id);
                             guideNames.add(displayName);
-                            guideNameToIdMap.put(displayName, id); // ✅ מיפוי לשם
+                            guideNameToIdMap.put(displayName, id); // ✅ מיפוי שם ל-UID
                         }
                     }
 
@@ -134,6 +155,10 @@ public class AddActivityFragment extends Fragment {
                         Snackbar.make(requireView(), "⚠️ שגיאה בטעינת מדריכים", Snackbar.LENGTH_LONG).show());
     }
 
+    /**
+     * שמירת הפעילות החדשה במסדי הנתונים (Firebase + SQLite).
+     * כולל בדיקת תקינות שדות והוספת הפעילות למדריך נבחר.
+     */
     private void saveActivity() {
         String name = etName.getText().toString().trim();
         String description = etDescription.getText().toString().trim();
@@ -144,41 +169,48 @@ public class AddActivityFragment extends Fragment {
         String domain = spinnerDomain.getSelectedItem().toString();
         boolean isOneTime = switchOneTime.isChecked();
 
+        // בדיקת תקינות שם פעילות
         if (TextUtils.isEmpty(name)) {
             Snackbar.make(requireView(), "נא להזין שם פעילות", Snackbar.LENGTH_SHORT).show();
             return;
         }
 
+        // המרת ערכים למספרים ורשימות
         int minAge = TextUtils.isEmpty(minAgeStr) ? 0 : Integer.parseInt(minAgeStr);
         int maxAge = TextUtils.isEmpty(maxAgeStr) ? 0 : Integer.parseInt(maxAgeStr);
         int maxParticipants = TextUtils.isEmpty(maxParticipantsStr) ? 0 : Integer.parseInt(maxParticipantsStr);
         List<String> days = TextUtils.isEmpty(daysInput) ? new ArrayList<>() : Arrays.asList(daysInput.split(",\\s*"));
+
+        // יצירת מזהה ייחודי לפעילות
         String id = UUID.randomUUID().toString();
         Timestamp now = Timestamp.now();
         boolean approved = !isOneTime;
         String month = LocalDate.now().getMonthValue() + "-" + LocalDate.now().getYear();
         String guideName = selectedGuideName;
-        String guideUid = guideNameToIdMap.get(guideName); // ✅ מביא את ה־uid
+        String guideUid = guideNameToIdMap.get(guideName); // ✅ מציאת UID של המדריך הנבחר
 
+        // בניית אובייקט הפעילות
         ActivityModel activity = new ActivityModel(
                 id, name, description, domain, minAge, maxAge, days,
                 maxParticipants, now, isOneTime, approved, guideName, month
         );
 
+        // שמירת הפעילות ב-Firebase
         firestore.collection("activities")
                 .document(id)
                 .set(activity)
                 .addOnSuccessListener(unused -> {
-                    // 🔽 נוסיף את השדה isRegistrationOpen
+                    // הוספת שדה isRegistrationOpen כברירת מחדל: סגור
                     firestore.collection("activities")
                             .document(id)
-                            .update("isRegistrationOpen", false);  // ברירת מחדל: סגור
+                            .update("isRegistrationOpen", false);
 
+                    // שמירה מקומית ב-SQLite
                     localDb.insertActivity(activity);
                     Log.d("SaveActivity", "🎉 שמירה ל-Firebase ו-SQLite בוצעה בהצלחה");
                     Snackbar.make(requireView(), "✅ הפעילות נשמרה בהצלחה", Snackbar.LENGTH_LONG).show();
 
-                    // ⬇️ המשך הקוד שלך
+                    // עדכון רשימת הפעילויות של המדריך הנבחר
                     if (guideUid != null) {
                         firestore.collection("users")
                                 .document(guideUid)
@@ -187,13 +219,16 @@ public class AddActivityFragment extends Fragment {
                                 .addOnFailureListener(e -> Log.e("GuideUpdate", "❌ שגיאה בעדכון מדריך", e));
                     }
 
+                    // איפוס השדות לאחר שמירה
                     clearFields();
                 })
-
                 .addOnFailureListener(e ->
                         Snackbar.make(requireView(), "❌ שגיאה: " + e.getMessage(), Snackbar.LENGTH_LONG).show());
     }
 
+    /**
+     * איפוס כל השדות בטופס להזנת פעילות חדשה.
+     */
     private void clearFields() {
         etName.setText("");
         etDescription.setText("");

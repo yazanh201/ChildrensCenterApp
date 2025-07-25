@@ -14,26 +14,50 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Helper לניהול מסד הנתונים המקומי של הרשמות משתמשים.
+ * {@code UserRegistrationDatabaseHelper} – מחלקת עזר לניהול מסד נתונים מקומי (SQLite) עבור הרשמות של משתמשים.
+ * <p>
+ * תפקיד המחלקה:
+ * <ul>
+ *   <li>יצירת טבלת הרשמות מקומית עבור המשתמש.</li>
+ *   <li>שמירה, עדכון ומחיקה של הרשמות פעילות.</li>
+ *   <li>שליפת כל ההרשמות מהמסד המקומי.</li>
+ * </ul>
  */
 public class UserRegistrationDatabaseHelper extends SQLiteOpenHelper {
 
+    /** שם מסד הנתונים */
     private static final String DATABASE_NAME = "user_registrations.db";
+
+    /** גרסת מסד הנתונים */
     private static final int DATABASE_VERSION = 1;
+
+    /** שם טבלת ההרשמות */
     private static final String TABLE_NAME = "user_registrations";
 
-    private static final String COL_ID = "id";  // מזהה ייחודי
+    /** עמודות */
+    private static final String COL_ID = "id";  // מזהה ייחודי להרשמה
     private static final String COL_ACTIVITY_ID = "activityId";
-    private static final String COL_DAYS = "days"; // נשמר כמחרוזת עם פסיקים
+    private static final String COL_DAYS = "days"; // נשמר כמחרוזת מופרדת בפסיקים
     private static final String COL_DOMAIN = "domain";
     private static final String COL_TIMESTAMP = "timestamp";
 
+    /** תגית ללוגים */
     private static final String TAG = "UserRegDB";
 
+    /**
+     * בנאי המחלקה – יוצר חיבור למסד הנתונים המקומי.
+     *
+     * @param context ההקשר (Context) של האפליקציה.
+     */
     public UserRegistrationDatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+    /**
+     * יצירת טבלת ההרשמות בפעם הראשונה.
+     *
+     * @param db מופע מסד הנתונים.
+     */
     @Override
     public void onCreate(SQLiteDatabase db) {
         String createTable = "CREATE TABLE " + TABLE_NAME + " (" +
@@ -47,21 +71,31 @@ public class UserRegistrationDatabaseHelper extends SQLiteOpenHelper {
         Log.d(TAG, "Table created: " + TABLE_NAME);
     }
 
+    /**
+     * טיפול בשדרוג גרסה – מוחק את הטבלה ומייצר אותה מחדש.
+     *
+     * @param db         מופע מסד הנתונים.
+     * @param oldVersion גרסה ישנה.
+     * @param newVersion גרסה חדשה.
+     */
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // בגרסה חדשה מוחקים את הטבלה ומייצרים מחדש (לשדרוג עתידי)
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
         Log.d(TAG, "Table dropped: " + TABLE_NAME);
         onCreate(db);
     }
 
     /**
-     * מוסיף או מעדכן הרשמה של משתמש לפי מזהה ייחודי.
+     * הוספה או עדכון של הרשמה לפי מזהה ייחודי.
+     *
+     * @param model אובייקט הרשמה לשמירה במסד הנתונים המקומי.
      */
     public void insertOrUpdateRegistration(RegistrationForUserModel model) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(COL_ID, model.getActivityId()); // חשוב! אם יש מזהה אחר יש לשנות בהתאם
+
+        // מזהה ייחודי – ניתן לשנות לפי צורך אם קיים מזהה אחר
+        values.put(COL_ID, model.getActivityId());
         values.put(COL_ACTIVITY_ID, model.getActivityId());
         values.put(COL_DAYS, model.getDays() != null ? String.join(",", model.getDays()) : "");
         values.put(COL_DOMAIN, model.getDomain());
@@ -79,6 +113,8 @@ public class UserRegistrationDatabaseHelper extends SQLiteOpenHelper {
 
     /**
      * מחיקת הרשמה לפי מזהה ייחודי.
+     *
+     * @param id מזהה ההרשמה למחיקה.
      */
     public void deleteRegistrationById(String id) {
         SQLiteDatabase db = getWritableDatabase();
@@ -93,7 +129,9 @@ public class UserRegistrationDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * שליפה של כל ההרשמות מהמסד המקומי.
+     * שליפת כל ההרשמות מהמסד המקומי.
+     *
+     * @return רשימת כל ההרשמות הקיימות ב-SQLite.
      */
     public List<RegistrationForUserModel> getAllRegistrations() {
         SQLiteDatabase db = getReadableDatabase();
@@ -118,7 +156,7 @@ public class UserRegistrationDatabaseHelper extends SQLiteOpenHelper {
 
             model.setDomain(cursor.getString(cursor.getColumnIndexOrThrow(COL_DOMAIN)));
 
-            // לאט לאט ניתן להוסיף טיפול ב־timestamp אם תרצה
+            // ניתן להוסיף טיפול בשדה timestamp בהמשך אם צריך
 
             list.add(model);
         } while (cursor.moveToNext());
