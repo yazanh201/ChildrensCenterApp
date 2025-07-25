@@ -1,90 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F9F9F9">
+    android:background="#EAF6F6"
+    android:padding="16dp"
+    android:layoutDirection="rtl">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp"
         android:gravity="center_horizontal">
 
-        <!-- כותרת ראשית -->
-        <TextView
+        <!-- כרטיס חיפוש -->
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text=" חיפוש פעילויות"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="#3F51B5"
-            android:gravity="center"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="8dp"
+            app:cardBackgroundColor="#FFFFFF">
 
-        <!-- סינון תחום -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="בחר תחום:"
-            android:textSize="16sp"
-            android:textColor="#555555"
-            android:layout_marginBottom="4dp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp"
+                android:gravity="center_horizontal">
 
-        <Spinner
-            android:id="@+id/spinnerDomain"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@android:drawable/btn_dropdown"
-            android:layout_marginBottom="16dp" />
+                <!-- כותרת -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" חיפוש פעילויות"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="#1B1F3B"
+                    android:layout_marginBottom="24dp" />
 
-        <!-- סינון יום -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="בחר יום:"
-            android:textSize="16sp"
-            android:textColor="#555555"
-            android:layout_marginBottom="4dp" />
+                <!-- סינון תחום -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="תחום הפעילות:"
+                    android:textSize="16sp"
+                    android:textColor="#555555"
+                    android:layout_marginBottom="4dp" />
 
-        <Spinner
-            android:id="@+id/spinnerDay"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@android:drawable/btn_dropdown"
-            android:layout_marginBottom="16dp" />
+                <Spinner
+                    android:id="@+id/spinnerDomain"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
 
-        <!-- גיל -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="הזן גיל הילד:"
-            android:textSize="16sp"
-            android:textColor="#555555"
-            android:layout_marginBottom="4dp" />
+                    android:padding="8dp"
+                    android:layout_marginBottom="16dp" />
 
-        <EditText
-            android:id="@+id/etAge"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:hint="לדוגמה: 9"
-            android:inputType="number"
-            android:background="@android:drawable/edit_text"
-            android:padding="10dp"
-            android:layout_marginBottom="20dp" />
+                <!-- סינון יום -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="יום הפעילות:"
+                    android:textSize="16sp"
+                    android:textColor="#555555"
+                    android:layout_marginBottom="4dp" />
 
-        <!-- כפתור חיפוש -->
-        <Button
-            android:id="@+id/btnSearch"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:text=" חפש פעילויות"
-            android:backgroundTint="#3F51B5"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:layout_marginBottom="24dp" />
+                <Spinner
+                    android:id="@+id/spinnerDay"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
 
-        <!-- כותרת רשימה -->
+                    android:padding="8dp"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- גיל הילד -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="גיל הילד"
+                    app:boxBackgroundMode="outline"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    android:layout_marginBottom="24dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etAge"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:hint="לדוגמה: 9" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- כפתור חיפוש -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSearch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="חפש "
+                    android:textSize="16sp"
+                    android:textColor="@android:color/white"
+                    android:minWidth="200dp"
+                    android:padding="12dp"
+                    app:cornerRadius="50dp"
+                    app:backgroundTint="#4A6CF7"
+                    android:layout_marginTop="8dp"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- תוצאות -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -94,14 +120,12 @@
             android:textColor="#222222"
             android:layout_marginBottom="8dp" />
 
-        <!-- קו הפרדה -->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="#CCCCCC"
             android:layout_marginBottom="8dp" />
 
-        <!-- רשימת פעילויות -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewActivities"
             android:layout_width="match_parent"

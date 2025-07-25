@@ -1,69 +1,106 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
+    android:background="#F4F6F8"
+    android:padding="24dp"
+    android:layoutDirection="rtl">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <!-- כרטיס מרכזי למדריך -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardGuideOptions"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:layout_margin="24dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="#FFFFFF"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- כותרת ברוכה למדריך -->
-        <TextView
-            android:id="@+id/tvWelcomeGuide"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="👋 ברוך הבא, מדריך!"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="#333333"
+            android:orientation="vertical"
             android:gravity="center"
-            android:layout_marginBottom="32dp" />
+            android:minHeight="420dp"
+            android:padding="32dp">
 
-        <!-- כפתור להצגת פעילויות אישיות -->
-        <Button
-            android:id="@+id/btnShowActivities"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:text="הפעילויות שלי"
-            android:backgroundTint="#3F51B5"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:layout_marginBottom="16dp" />
+            <!-- כותרת -->
+            <TextView
+                android:id="@+id/tvWelcomeGuide"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" ברוך הבא, מדריך!"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="#1B1F3B"
+                android:layout_marginBottom="20dp" />
 
-        <!-- 💡 כפתור נוסף לצפייה בכל הפעילויות -->
-        <Button
-            android:id="@+id/btnAllActivities"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:text="צפייה בכל הפעילויות"
-            android:backgroundTint="#607D8B"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:layout_marginBottom="16dp" />
+            <!-- תת־כותרת -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="בחר פעולה:"
+                android:textSize="16sp"
+                android:textColor="#666666"
+                android:layout_marginBottom="28dp" />
 
-        <!-- כותרת מוסתרת בהתחלה -->
-        <TextView
-            android:id="@+id/guideTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="הפעילויות שלי"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="#333333"
-            android:visibility="gone"
-            android:layout_marginTop="16dp"
-            android:gravity="center" />
+            <!-- כפתור הפעילויות שלי -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnShowActivities"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="הפעילויות שלי"
+                android:textSize="16sp"
+                android:textColor="@android:color/white"
+                android:minWidth="220dp"
+                android:padding="12dp"
+                app:cornerRadius="40dp"
+                app:backgroundTint="#4A6CF7"
+                android:layout_marginBottom="16dp"
+                android:elevation="4dp" />
 
-        <!-- רשימת פעילויות (ריקלוויו) -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerViewActivities"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:layout_marginTop="12dp" />
+            <!-- כפתור כל הפעילויות -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAllActivities"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="צפייה בכל הפעילויות"
+                android:textSize="16sp"
+                android:textColor="@android:color/white"
+                android:minWidth="220dp"
+                android:padding="12dp"
+                app:cornerRadius="40dp"
+                app:backgroundTint="#607D8B"
+                android:elevation="4dp" />
 
-    </LinearLayout>
-</ScrollView>
+            <!-- כותרת מוסתרת לרשימה -->
+            <TextView
+                android:id="@+id/guideTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="הפעילויות שלי"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#333333"
+                android:visibility="gone"
+                android:layout_marginTop="20dp"
+                android:gravity="center" />
+
+            <!-- רשימת פעילויות -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewActivities"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:layout_marginTop="12dp" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

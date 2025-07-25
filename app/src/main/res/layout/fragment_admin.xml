@@ -1,42 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
+    android:background="#F4F6F8"
+    android:padding="24dp"
+    android:layoutDirection="rtl">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
+    <!-- כרטיס מרכזי למנהל -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardManagerOptions"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="24dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="#FFFFFF"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <TextView
-            android:id="@+id/tvWelcomeManager"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text=" ברוך הבא, מנהל!"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="#333333"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
             android:gravity="center"
-            android:layout_marginBottom="32dp" />
+            android:minHeight="420dp"
+            android:padding="32dp">
 
-        <Button
-            android:id="@+id/btnActivities"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:text="הצג פעילויות"
-            android:backgroundTint="#3F51B5"
-            android:textColor="#FFFFFF"
-            android:layout_marginBottom="16dp" />
+            <!-- כותרת -->
+            <TextView
+                android:id="@+id/tvWelcomeManager"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ברוך הבא, מנהל!"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="#1B1F3B"
+                android:layout_marginBottom="16dp" />
 
-        <Button
-            android:id="@+id/btnUsers"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="משתמשים"
-            android:layout_marginTop="16dp" />
+            <!-- תת־כותרת -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="בחר פעולה:"
+                android:textSize="16sp"
+                android:textColor="#666666"
+                android:layout_marginBottom="28dp"/>
 
+            <!-- כפתור פעילויות -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnActivities"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="הצג פעילויות"
+                android:textSize="16sp"
+                android:textColor="@android:color/white"
+                android:minWidth="220dp"
+                android:padding="12dp"
+                app:cornerRadius="40dp"
+                app:backgroundTint="#4A6CF7"
+                android:layout_marginBottom="16dp"
+                android:elevation="4dp" />
 
-    </LinearLayout>
-</ScrollView>
+            <!-- כפתור משתמשים -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnUsers"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="משתמשים"
+                android:textSize="16sp"
+                android:textColor="@android:color/white"
+                android:minWidth="220dp"
+                android:padding="12dp"
+                app:cornerRadius="40dp"
+                app:backgroundTint="#00BCD4"
+                android:elevation="4dp" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
