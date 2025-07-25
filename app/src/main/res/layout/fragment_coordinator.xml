@@ -13,7 +13,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="👋 ברוך הבא, רכז!"
+            android:text=" ברוך הבא, רכז!"
             android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="#333333"
@@ -24,7 +24,7 @@
             android:id="@+id/btnAddActivity"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:text="➕ הוסף פעילות חדשה"
+            android:text=" הוסף פעילות חדשה"
             android:backgroundTint="#673AB7"
             android:textColor="#FFFFFF"
             android:layout_marginBottom="16dp" />
@@ -33,7 +33,7 @@
             android:id="@+id/btnShowActivities"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:text="📋 הצג את כל הפעילויות"
+            android:text=" הצג את כל הפעילויות"
             android:backgroundTint="#673AB7"
             android:textColor="#FFFFFF"
             android:layout_marginBottom="16dp" />
@@ -42,7 +42,7 @@
             android:id="@+id/btnShowGuides"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:text="👨‍🏫 הצג את כל המדריכים"
+            android:text=" הצג את כל המדריכים"
             android:backgroundTint="#673AB7"
             android:textColor="#FFFFFF"
             android:layout_marginBottom="16dp" />

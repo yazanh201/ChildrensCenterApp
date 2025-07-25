@@ -15,7 +15,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="🎯 חיפוש פעילויות"
+            android:text=" חיפוש פעילויות"
             android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="#3F51B5"
@@ -78,7 +78,7 @@
             android:id="@+id/btnSearch"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:text="🔍 חפש פעילויות"
+            android:text=" חפש פעילויות"
             android:backgroundTint="#3F51B5"
             android:textColor="#FFFFFF"
             android:textSize="16sp"

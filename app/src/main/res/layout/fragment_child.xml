@@ -14,7 +14,7 @@
             android:id="@+id/tvWelcome"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="👋 ברוך הבא, ילד!"
+            android:text=" ברוך הבא, ילד!"
             android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="#333333"

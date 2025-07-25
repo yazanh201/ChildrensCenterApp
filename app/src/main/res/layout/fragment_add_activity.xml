@@ -14,7 +14,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="✨ הוספת פעילות חדשה"
+            android:text=" הוספת פעילות חדשה"
             android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="#333333"
@@ -127,7 +127,7 @@
         <!-- כפתור שמירה -->
         <Button
             android:id="@+id/btnSave"
-            android:text="💾 שמור פעילות"
+            android:text=" שמור פעילות"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="#4CAF50"
